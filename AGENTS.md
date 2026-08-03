@@ -14,6 +14,9 @@ rubric, the locked decisions, and the cut list. This file is the short version.
 | `docs/04-TAX-RULES.md` | The 29-rule catalogue for BR/CO/AR/CL/PE |
 | `docs/05-REVIEW-CHECKLIST.md` | What Cursor audits against |
 | `docs/06-SUBMISSION.md` | **Deliverables checklist, gitignore trap, clean-clone test. Read before submitting.** |
+| `docs/12-RUBRIC-AUDIT-AGENT.md` | Brief for the Rubric Audit Agent (improves the score) |
+| `docs/13-QA-PROBE-AGENT.md` | Brief for the QA Probe Agent (hourly, protects the score) |
+| `docs/14-AGENT-OPERATIONS.md` | **Runbook for both automation agents: invocation, safety, memory, alerting** |
 | `docs/reference/` | Complete working reference build. Port, do not deploy. |
 | `audit/` | **Shared work log across agents. Read `audit/ACTIVE.md` first.** |
 
