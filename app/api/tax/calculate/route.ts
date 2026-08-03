@@ -1,6 +1,11 @@
 import { NoApplicableRuleError } from "@/lib/calculator";
 import { jsonError, jsonOk, readJsonBody } from "@/lib/http";
-import { calculate, presentResult, ReplayedFailureError } from "@/lib/tax-service";
+import {
+  auditRejectedRequest,
+  calculate,
+  presentResult,
+  ReplayedFailureError,
+} from "@/lib/tax-service";
 import { optionalTransactionId, toCalculationInput, ValidationError } from "@/lib/validation";
 
 /**
@@ -28,7 +33,9 @@ import { optionalTransactionId, toCalculationInput, ValidationError } from "@/li
 export async function POST(request: Request) {
   const body = await readJsonBody(request);
   if (!body) {
-    return jsonError(400, "INVALID_REQUEST", "Request body must be a JSON object.");
+    const message = "Request body must be a JSON object.";
+    auditRejectedRequest({ rawRequest: null, code: "INVALID_REQUEST", message });
+    return jsonError(400, "INVALID_REQUEST", message);
   }
 
   try {
@@ -49,6 +56,13 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     if (err instanceof ValidationError) {
+      auditRejectedRequest({
+        rawRequest: body,
+        code: err.code,
+        message: err.message,
+        transactionId:
+          typeof body.transaction_id === "string" ? body.transaction_id : undefined,
+      });
       return jsonError(400, err.code, err.message, err.field ? { field: err.field } : undefined);
     }
     if (err instanceof NoApplicableRuleError) {

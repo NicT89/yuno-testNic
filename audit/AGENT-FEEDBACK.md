@@ -63,6 +63,19 @@ demo, so deleting it cost points. Relabelling it honestly as illustrative cost
 nothing. → An invented rate is fine under the brief; a real citation that says
 something else is not.
 
+**Cross edge cases; do not test them only in isolation.** *(2026-08-03)* Zero
+amount and no-rule each passed alone, but together an uncovered transaction
+returned 200/0% because the zero short circuit ran first. Offset timestamps also
+passed generic ISO validation while selecting the wrong date window through
+lexical comparison. → Combine degenerate amounts with missing coverage, and
+canonicalize every accepted external timestamp before bitemporal comparison.
+
+**Attack every column protected by an immutability claim.** *(2026-08-03)* The
+rule trigger rejected rate updates, so the suite passed, but accepted in-place
+changes to `treatment`, thresholds, scope and notes. → Define the one permitted
+state transition (null `superseded_at` to one timestamp) and reject any UPDATE
+whose full old/new row differs elsewhere.
+
 ## Dead ends — do not repeat
 
 **`YUNO_DB_PATH` environment override in `lib/db.ts`.** *(2026-08-03)* Made
