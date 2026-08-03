@@ -1,38 +1,45 @@
 # Architectural decisions
 
-This service is a small **Next.js App Router** application whose public surface
-is a set of Route Handlers under `/api/*`, deployed as serverless functions on
-**Vercel**. I chose that stack because the brief asks for a working, documented
-API with a Vercel deliverable URL, and App Router handlers give typed TypeScript
-endpoints with almost no ceremony.
+**Structure.** Three layers, dependencies pointing inward only: `app/api/**`
+(thin HTTP handlers) → `lib/{tax-service,rules-repo,audit,compliance}` (the IO
+layer) → `lib/{calculator,rules,money}` (pure). The inner three import no
+database, no HTTP and no clock — time is passed in as an argument. That is why
+the accuracy suite runs without a server and why any historical calculation can
+be replayed exactly.
 
-**Structure.** Domain logic lives in `lib/` (`db`, `rules`, `calculator`,
-`compliance`) and is deliberately free of HTTP concerns. The `app/api` layer
-only validates input and maps domain errors to status codes. That split keeps
-the calculation rules unit-testable with a plain Node script (`npm test`)
-without spinning up a server.
+**How rules are stored and versioned.** `tax_rule_versions` is append-only and
+**bitemporal**. `validFrom`/`validTo` records when a rate was the law and is
+selected by the transaction date. `recordedAt`/`supersededAt` records when *we*
+believed it and is selected by an as-of instant. Both axes are required: the
+first answers "charge the rate in force when the sale happened", the second
+answers "a calculation from last month must not change because we corrected a
+rate today". Collapsing them into one `effective_date` column — the obvious
+shortcut — makes the second unsatisfiable.
 
-**How tax rules are stored and versioned.** Editable fixtures live in
-`data/tax-rules.json` and `data/transactions.json`. `npm run db:seed` loads them
-into a SQLite database (`data/yuno-tax.db`) with tables `tax_rules` and
-`transactions`. Rules are an append-only list keyed by stable `id` plus
-monotonic `version`, each with `effective_from` / `effective_to` windows.
-Resolution filters in SQL by country, category, and date, then prefers a
-regional match over a country-wide rule and the highest version. The Mexico
-digital-services rule ships as v1 and v2 with adjacent date windows so reports
-can show which version applied.
+Changing a rate inserts a new version and stamps `supersededAt` on the previous
+one. The API presents CRUD verbs, but `PUT` appends vN+1 and `DELETE` closes a
+validity window — nothing is updated in place or removed, and SQLite triggers
+reject any other mutation, so the guarantee is enforced by the database rather
+than by convention.
 
-**Why SQLite (and why `node:sqlite`).** Under a ~2-hour constraint I wanted a
-real SQL store without provisioning Postgres or Turso. Node 22’s built-in
-`node:sqlite` avoids native addons (`better-sqlite3`) that complicate Vercel
-builds. The DB is opened **read-only** at runtime and traced into serverless
-bundles via `outputFileTracingIncludes`. JSON remains the seed source so
-fixtures stay diffable in git; APIs never import JSON directly.
+Resolution selects one winning rule **per tax type**, ranked by specificity: an
+exact category beats the country wildcard, an exact customer type beats the
+wildcard. That is what makes multi-tax stacking work, and it is why Brazilian
+digital services carry an explicit 0% ICMS rule — the STF exclusivity is encoded
+in the catalogue instead of depending on the absence of a row.
 
-**Trade-offs.** Vercel’s filesystem is ephemeral, so this demo does not accept
-durable writes through the API — reseed and redeploy to change data. US tax is
-modelled as state base rates only (no district add-ons); clothing/food
-exemptions are flat categories rather than amount thresholds. Rounding is
-commercial half-up on integer minor units. With more time I would move to
-Turso/libSQL for multi-instance writes, add threshold-aware exemptions,
-OpenAPI, and a persisted calculation ledger keyed by `rule_id@version`.
+**Audit trail.** Every request writes exactly one row, including failures,
+storing the inputs verbatim, the output, the applied rule version ids **and** a
+full snapshot of those rules. The duplication is deliberate: the ids prove
+provenance against the rule table, the snapshot lets an auditor verify the
+arithmetic without access to it.
+
+**Money** is integer minor units and integer basis points throughout; CLP has
+exponent 0 and rounding mode is per country.
+
+**Trade-offs.** `node:sqlite` gives a real SQL store with no native addon. On
+Vercel the database is copied to the instance's `/tmp`,
+so writes are durable per instance but not shared; the seed replays all 57
+fixtures at build time so every instance boots with a populated audit trail.
+Production swaps in Turso or Postgres behind `lib/db.ts` — nothing above that
+file changes.

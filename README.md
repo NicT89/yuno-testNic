@@ -50,9 +50,12 @@ an engineering one.
 
 ```bash
 npm install
-npm run db:seed
 npm run demo
 ```
+
+Two commands from a clean clone. `npm run demo` seeds the database first, so
+there is no separate setup step (`npm run db:seed` also runs standalone, and
+automatically before `dev`, `build` and `test`).
 
 `npm run demo` is the 20-second tour: a calculation matrix across all five
 countries, every edge case, an idempotent retry, date-based rule selection

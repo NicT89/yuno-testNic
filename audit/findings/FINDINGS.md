@@ -380,3 +380,62 @@ see the row. Reads of seeded transactions never fail, and reporting never fails,
 because the seed ships in the bundle. Recorded in `README.md` and `NOTES.md`
 rather than papered over. The production fix is Turso/libSQL or Postgres behind
 `lib/db.ts`, which changes nothing above the repository layer.
+
+### F-026 — BLOCKING — Production URL returns 404 · submission Deliverable URL
+
+`https://yuno-test-nic.vercel.app/`, `/api/health` and `/api/audit/txn_br_0001`
+all return 404. Not a protection wall, not a build-error page. This is the URL
+going in the submission form's Deliverable URL field.
+
+`.vercel/project.json` shows the project exists
+(`prj_AQScbk5JEJIdCv3dx7aQXSiFdeIK`, team `team_iZtrUMgQy7fcyShR98St3elu`), and
+`origin/main` now contains every source file, so the earlier cause (untracked
+`lib/` and `app/api/audit/`) is fixed. Something else is wrong.
+
+Diagnose in this order:
+
+1. **No production deployment.** A CLI link creates the project but `vercel`
+   alone deploys a preview. Run `vercel ls` then `vercel --prod`.
+2. **Git integration not connected.** If the project was linked by CLI only,
+   `git push` triggers nothing. Connect the GitHub repo in project settings.
+3. **Node version — the most likely runtime cause.** `lib/db.ts` imports
+   `node:sqlite`, which is only available without a flag on recent Node 22.x.
+   Local is v22.22.3 and works. If the Vercel project is pinned to Node 20, or
+   to a 22.x older than the unflagging, every API route throws on import.
+   Check Project Settings → Node.js Version and set 22.x. `package.json`
+   already declares `"engines": { "node": ">=22" }`.
+4. **Build failure.** `vercel inspect <deployment-url> --logs`, or the
+   Deployments tab. Watch for `prebuild` (`db:seed`) failing, which would leave
+   `data/yuno-tax.db` absent and break `outputFileTracingIncludes`.
+
+Once it responds, run `./verify/smoke-test.sh https://yuno-test-nic.vercel.app`.
+Check 3 (POST a calculation, then GET its audit record) is the one that proves
+the `/tmp` copy in `lib/db.ts` actually works on serverless. If that check
+fails, Requirement 2 is broken in public and the repo URL should be the
+Deliverable URL instead.
+
+### F-027 — LOW — Repo carries a second implementation and two junk files
+
+`docs/reference/` is 30 committed files: a complete, different (Express) build
+of the same brief, with its own `README.md`, `ARCHITECTURE.md`, `CLAUDE.md` and
+`package.json`. `docs/reference/README.md` opens with the same title as the real
+one. `tsconfig.json` already excludes `docs/`, so it cannot break the build, but
+a reviewer browsing the repo can reasonably wonder which is the submission.
+
+Also committed: `docs/_archive/_writetest.txt` (29 bytes, the output of `date`
+from a filesystem check) and `docs/_archive/reference-impl.tar.gz` (44 KB
+binary). Both are scaffolding noise in a graded repository.
+
+Fix, about two minutes:
+
+```bash
+git rm -r --cached docs/_archive && echo "docs/_archive/" >> .gitignore
+# then add a banner as the first line of docs/reference/README.md:
+# > NOT THE SUBMISSION. This is a standalone Express reference build used to
+# > prototype the domain logic. The submitted service is the Next.js app at the
+# > repository root. See ../../README.md.
+git add -A && git commit -m "Remove build scaffolding; label the reference build" && git push
+```
+
+Keeping `docs/reference/` is defensible and arguably shows process. Keeping it
+unlabelled is not.
