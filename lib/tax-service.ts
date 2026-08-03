@@ -8,7 +8,7 @@
 import { randomUUID } from "node:crypto";
 import { calculateTax, NoApplicableRuleError } from "./calculator";
 import { resolveApplicableRules } from "./rules";
-import { currencyExponent, formatMinor } from "./money";
+import { COUNTRY_DEFAULT_CURRENCY, currencyExponent, formatMinor } from "./money";
 import type { CalculationInput, CalculationResult } from "./types";
 import { countryRoundingMode, currentRulesetVersion, findCandidateRules } from "./rules-repo";
 import { findByIdempotencyKey, getAudit, writeAudit, type AuditRecord } from "./audit";
@@ -27,6 +27,75 @@ export interface CalculateOutcome {
   createdAt: string;
   result: CalculationResult;
   replayed: boolean;
+}
+
+export interface RejectedRequestCommand {
+  rawRequest: unknown;
+  code: string;
+  message: string;
+  transactionId?: string;
+}
+
+/**
+ * Persist a request rejected before it could become a valid CalculationInput.
+ * The raw body remains authoritative; conservative placeholders satisfy the
+ * indexed audit columns without pretending that invalid data was calculable.
+ */
+export function auditRejectedRequest(cmd: RejectedRequestCommand): AuditRecord {
+  const raw =
+    cmd.rawRequest && typeof cmd.rawRequest === "object" && !Array.isArray(cmd.rawRequest)
+      ? (cmd.rawRequest as Record<string, unknown>)
+      : {};
+  const suppliedId =
+    typeof cmd.transactionId === "string" &&
+    cmd.transactionId.length > 0 &&
+    cmd.transactionId.length <= 128
+      ? cmd.transactionId
+      : null;
+  if (suppliedId) {
+    const existing = getAudit(suppliedId);
+    if (existing) return existing;
+  }
+
+  const now = new Date().toISOString();
+  const rawCountry = typeof raw.country_code === "string" ? raw.country_code.toUpperCase() : "";
+  const transactionDateValue =
+    typeof raw.transaction_date === "string" ? new Date(raw.transaction_date) : null;
+  const transactionDate =
+    transactionDateValue && !Number.isNaN(transactionDateValue.getTime())
+      ? transactionDateValue.toISOString()
+      : now;
+  const customerType =
+    raw.customer_type === "business" ? "business" : "individual";
+  const input: CalculationInput = {
+    amountMinor: Number.isSafeInteger(raw.amount_minor) ? (raw.amount_minor as number) : 0,
+    discountMinor: Number.isSafeInteger(raw.discount_minor)
+      ? (raw.discount_minor as number)
+      : 0,
+    currency:
+      typeof raw.currency === "string"
+        ? raw.currency.toUpperCase()
+        : (COUNTRY_DEFAULT_CURRENCY[rawCountry] ?? "USD"),
+    countryCode: rawCountry || "UNKNOWN",
+    productCategory:
+      typeof raw.product_category === "string" && raw.product_category.trim()
+        ? raw.product_category.toLowerCase()
+        : "UNKNOWN",
+    customerType,
+    transactionDate,
+    priceIncludesTax: raw.price_includes_tax === true,
+  };
+
+  return writeAudit({
+    transactionId: suppliedId ?? `txn_rejected_${randomUUID()}`,
+    transactionDate,
+    input,
+    rawInput: cmd.rawRequest ?? null,
+    result: null,
+    error: { code: cmd.code, message: cmd.message },
+    rulesetVersion: currentRulesetVersion(),
+    appliedRules: [],
+  });
 }
 
 /**
