@@ -128,6 +128,20 @@ one is wrong, report it — do not silently change it.
 Work in this order. Stop and report when you run out of findings that clear the
 bar in section 7.
 
+**Step 0 — Read `audit/AGENT-FEEDBACK.md` end to end. This is mandatory and it
+is your first action.** It is the curated memory between passes: what is
+settled, what is already verified clean, what leads are open, which techniques
+have paid off, and where the last pass thought you should start. Skipping it
+means you will re-litigate decisions that are already made and re-find defects
+that are already fixed — which is the main way a repeating agent wastes a run.
+
+While you are in there, **sample-verify it**: pick at least two entries from its
+"Verified clean" table and re-run their commands. That file is itself a claim
+store, and this repository has twice shipped claim stores that went stale and
+became actively misleading (`NOTES.md`, `ARCHITECTURE.md`). If an entry no
+longer holds, that is a regression, it is your top-priority finding, and you
+must correct the entry in the same pass.
+
 **Step 1 — Establish the baseline** (section 3). A red baseline outranks
 everything else.
 
@@ -167,6 +181,28 @@ then follow the audit protocol in `audit/README.md`: claim paths in
 `audit/ACTIVE.md`, add a finding to `audit/findings/FINDINGS.md`, write
 `audit/log/NNNN-<agent>-<slug>.md`, release the claim.
 
+**Step 7 — Update `audit/AGENT-FEEDBACK.md`. This is mandatory and it is your
+last action.** A pass that changes the repo but not the feedback file has
+broken the loop, and the next agent starts blind. Specifically:
+
+- Add a row to **Pass history**.
+- Move anything you decided-and-closed into **Settled**, with the reason and the
+  date. This is what stops the next pass re-raising it.
+- Update **Verified clean** with what you checked, the command, and today's
+  date — including the two entries you re-verified in step 0.
+- Rewrite **Open leads** with anything you found but did not act on, ranked,
+  with why. Be honest here; a silently dropped finding is worse than a recorded
+  one.
+- Add to **Techniques that paid off** / **Dead ends** if this pass taught you
+  something a future agent would otherwise have to rediscover.
+- Replace **Start here next** with a concrete instruction, not a platitude.
+  "Re-read the CO rules against their citations" is useful; "keep improving
+  accuracy" is not.
+
+Obey that file's own maintenance rules: every entry carries a date and the
+command that established it, and the file stays under ~200 lines. Detail belongs
+in `audit/log/`; this file is the index a fresh agent can read in one go.
+
 ## 7. Prioritisation — what to work on
 
 Rank every candidate finding by **points at risk ÷ effort**, and apply this bar:
@@ -199,6 +235,11 @@ A pass that reports "improved code quality" with no criterion named is a failed
 pass. Never report a fix you have not executed and verified.
 
 ## 9. Current state — do not re-raise these
+
+> **The living version of this list is `audit/AGENT-FEEDBACK.md`.** What follows
+> is the seed as of 2026-08-03 and it will go stale; the feedback file is
+> maintained every pass and wins on any disagreement. If you notice the two have
+> diverged, trust the feedback file and fix this section.
 
 As of 2026-08-03, verified working. If you find one broken, that is a real
 regression and a top-priority finding.
@@ -246,6 +287,7 @@ End every pass with:
 ```
 PASS SUMMARY
 Outcome:        shipped | nothing-above-bar | blocked
+Feedback read:  yes — <n> entries re-verified, <n> stale entries corrected
 Baseline:       before <result> / after <result>
 Findings:       F-NNN <one line> -> <criterion> (<pts>) -> <status>
 Changed:        <files>
@@ -253,7 +295,13 @@ Verified by:    <exact commands and their output>
 Points moved:   <criterion>: <what a reviewer can now do that they could not>
 Left undone:    <what you found but did not act on, and why>
 Next pass:      <where to start, so the next run does not repeat this one>
+Feedback file:  updated — <what you added to Settled / Verified / Open leads>
 ```
 
 Be honest in "Left undone". A pass that quietly drops a finding it could not fix
 is worse than one that reports it.
+
+**A pass that does not end with `audit/AGENT-FEEDBACK.md` updated is not
+complete, regardless of what else it achieved.** The loop is the point: each run
+should start better-informed than the last, and that only happens if every run
+pays into the file it read from.
