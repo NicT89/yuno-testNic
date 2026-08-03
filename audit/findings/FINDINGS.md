@@ -21,7 +21,7 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-011 | Idempotency is an explicit Requirement 1 clause, absent from the build plan | accuracy | `docs/06-SUBMISSION.md` | T3/T8 | claude-code | **RESOLVED** |
 | F-012 | Fixtures need timestamp variety and small/medium/large amount bands | test data | `docs/06-SUBMISSION.md` | T6 | cowork | **RESOLVED** |
 | F-013 | Compliance report must carry an `edgeCases` block (explicit in Requirement 2) | 20 | `docs/06-SUBMISSION.md` | T5 | claude-code | **RESOLVED** |
-| F-014 | Vercel lambda filesystem is read-only; audit writes fail on the deployed URL | 20 | `audit/findings/FINDINGS.md` F-014 | T10 | claude-code | **RESOLVED** (pending live smoke check 3) |
+| F-014 | Vercel lambda filesystem is read-only; audit writes fail on the deployed URL | 20 | `audit/findings/FINDINGS.md` F-014 | T10 | claude-code | **RESOLVED** |
 | F-015 | Retry with a caller-supplied `transaction_id` returns 500 (UNIQUE constraint). PRD requires no duplicate side effects | correctness | `docs/07-PRD-DELTA.md` | **T11** | claude-code | **RESOLVED** |
 | F-016 | Audit lookup returns one record; PRD says "complete audit history" per transaction | low | `docs/07-PRD-DELTA.md` | **T16** | claude-code | **RESOLVED** (documented) |
 | F-017 | Rules API exposes Create/Read only; PRD asks for CRUD | 20 | `docs/07-PRD-DELTA.md` | **T12** | claude-code | **RESOLVED** |
@@ -34,6 +34,7 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-024 | `CO:CLOTHING:IVA` permanent COP threshold is invented (Días sin IVA were day-limited); notes misstate minor units | **25** | `docs/11-DATA-DISCLAIMER.md` | catalogue | cursor | **RESOLVED by labelling** |
 | F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `docs/11-DATA-DISCLAIMER.md` | catalogue / demo honesty | cursor | **RESOLVED by labelling** |
 | F-026 | Vercel sets VERCEL=1 at BUILD time, so the seed wrote its audit rows to the build container /tmp and shipped an empty audit trail | 20 | `lib/db.ts` `getDbPath()` | T10 | claude-code | **RESOLVED** |
+| F-027 | `docs/reference/` looks like a second submission; `docs/_archive/` is scaffolding noise | docs | `audit/log/0015-cowork-final-repo-audit.md` | hygiene | cursor | **RESOLVED** |
 
 ## Resolutions
 
@@ -414,7 +415,7 @@ the `/tmp` copy in `lib/db.ts` actually works on serverless. If that check
 fails, Requirement 2 is broken in public and the repo URL should be the
 Deliverable URL instead.
 
-### F-027 — LOW — Repo carries a second implementation and two junk files
+### F-027 — RESOLVED — Repo carries a second implementation and two junk files
 
 `docs/reference/` is 30 committed files: a complete, different (Express) build
 of the same brief, with its own `README.md`, `ARCHITECTURE.md`, `CLAUDE.md` and
@@ -439,3 +440,21 @@ git add -A && git commit -m "Remove build scaffolding; label the reference build
 
 Keeping `docs/reference/` is defensible and arguably shows process. Keeping it
 unlabelled is not.
+
+### F-014 — RESOLVED live on deliverable URL 2026-08-03T05:10Z by `cursor`
+
+`./verify/smoke-test.sh https://yuno-test-nic.vercel.app` → **8 passed, 0 failed**,
+including check 3. Status column no longer says “pending live smoke”.
+
+### F-026 (404 narrative) — RESOLVED 2026-08-03T04:30Z by `cursor` deploy
+
+Cause was Framework Preset **Other** / output `public` on project `yuno-test-nic`.
+Fixed with `vercel.json` (`framework: nextjs`) + `vercel --prod`. Root and
+`/api/health` return 200. Distinct from the earlier F-026 `/tmp` seed bug, which
+remains RESOLVED under the same id in the status table.
+
+### F-027 — RESOLVED 2026-08-03T05:10Z by `cursor`
+
+Banner added to `docs/reference/README.md`. `docs/_archive/` removed from git
+and ignored. Reference build retained as labelled process artifact.
+

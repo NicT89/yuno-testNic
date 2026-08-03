@@ -1,32 +1,39 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-03T04:25Z by `claude-code`
-**Phase:** Ship — T1–T16 complete and verified locally; committing, then deploy + smoke test
-**Repo:** `NicT89/yuno-testNic` · branch `main` · app code being committed now
+**Last updated:** 2026-08-03T05:15Z by `cursor`
+**Phase:** Submit-ready — final Cursor audit closed; F-001…F-027 RESOLVED
+**Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
 ## File ownership (claim before editing, release when done)
 
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
+| cursor | — **CLAIM RELEASED 05:15Z** (final audit + F-027). Artifacts: `audit/findings/CURSOR-FINAL-AUDIT.md`, log `0016`, reference banner, `_archive` removed | final audit + F-027 | done |
 | cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
 | cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
 
-**Unclaimed and safe for next agent:** `verify/**` (cursor-owned artifacts, free to run), `docs/10-SUBMISSION-NOTES.md`, `ARCHITECTURE.md`, `NOTES.md`, `reports/`.
-**Do not touch:** `app/page.tsx` (no UI score), `docs/reference/**` (read-only reference build).
+**Unclaimed and safe for next agent:** `verify/**`, `docs/10-SUBMISSION-NOTES.md`, `ARCHITECTURE.md`, `NOTES.md`, `reports/`.
+**Do not touch:** `app/page.tsx` (no UI score). `docs/reference/**` is labelled process artifact — edit only for hygiene.
 
 ## Open blockers
 
-**None.** The F-014 gate passed: `./verify/smoke-test.sh
-https://yuno-tax.vercel.app` -> **8 passed, 0 failed**, check 3 included.
+**None.** Live smoke on the deliverable URL: `./verify/smoke-test.sh
+https://yuno-test-nic.vercel.app` → **8 passed, 0 failed**, including F-014
+audit GET.
 
 One caveat worth knowing before a demo: check 3 can 404 on a cold instance
-(measured 3/5 immediately after a deploy, 5/5 once warm) because `/tmp` is
-per-instance. Seeded transaction reads and all reporting are unaffected. If you
-are demoing live, hit the URL once to warm it first, or read a seeded id such as
-`txn_br_0001`.
+because `/tmp` is per-instance. Seeded transaction reads and all reporting are
+unaffected. If you are demoing live, hit the URL once to warm it first, or
+read a seeded id such as `txn_br_0001`.
+
+### Cleared 2026-08-03T05:15Z by `cursor`
+
+- ~~Missing formal final audit artifact~~ — `audit/findings/CURSOR-FINAL-AUDIT.md`
+- ~~F-014 status still said “pending live smoke”~~ — status column RESOLVED
+- ~~F-027 unlabelled reference + `_archive` junk~~ — banner + gitignore
 
 ### Cleared 2026-08-03T04:25Z by `claude-code`
 
@@ -48,20 +55,10 @@ are demoing live, hit the URL once to warm it first, or read a seeded id such as
   = Vercel app, GitHub Repository URL = repo (verified public). This opens
   **F-014**, below: the deployed instance must actually persist audit records.
 
-## Observed in-flight work (not a claim, just what is on disk at 01:59Z)
-
-`claude-code` has created `lib/money.ts`, `lib/rules-repo.ts`,
-`scripts/schema.sql` and modified `lib/{types,db,rules,calculator}.ts` and
-`data/tax-rules.json`. That is T1/T2/T4 territory, consistent with its claim.
-Not yet present: `lib/audit.ts`, `app/api/audit/**` (T3, F-002), the POST
-handler on `app/api/tax/rules/route.ts` (T5, F-005), `scripts/demo.ts` (T7).
-
 ## Recent log entries
 
-- `0007-cowork-t13-revised-icms-iss.md` — F-022, T13 superseded by T13-R
-- `0006-cowork-fixtures-replaced.md` — F-012 resolved, reseed pending
-- `0005-cowork-prd-fix-tasks.md` — T11–T16 written and assigned
-- `0004-cowork-prd-delta-audit.md` — 7 findings F-015…F-021 from the PRD
-- `0003-cowork-seed-db-and-vercel-decisions.md` — F-009/F-010 closed, F-014 opened
-- `0002-cowork-submission-audit.md` — 4 new findings, gitignore trap fixed
-- `0001-cowork-gap-analysis.md` — 7 findings against the rubric
+- `0016-cursor-final-audit.md` — CURSOR-FINAL-AUDIT, F-014/F-027 closeout
+- `0015-cowork-final-repo-audit.md` — opened F-027
+- `0014-claude-code-ship-and-smoke.md` — ship + smoke
+- `0014-cursor-data-disclaimer.md` — catalogue labelling
+- `0013-claude-code-catalogue-accuracy.md` — F-022–025

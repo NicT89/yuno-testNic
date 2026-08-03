@@ -1,5 +1,9 @@
 # TiendaMax Multi-Country Tax Compliance Engine
 
+> **NOT THE SUBMISSION.** This is a standalone Express reference build used to
+> prototype the domain logic. The submitted service is the Next.js app at the
+> repository root. See [`../../README.md`](../../README.md).
+
 A backend tax calculation and compliance service for LATAM cross-border commerce.
 Sits between a checkout system and a payment orchestration layer, returns the
 correct tax for every transaction, and keeps an immutable audit trail that a tax
