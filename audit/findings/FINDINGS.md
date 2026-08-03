@@ -30,6 +30,9 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-020 | `countries.rounding_mode` is seeded but never read by the calculator | code quality | `docs/07-PRD-DELTA.md` | **T14** | claude-code | OPEN |
 | F-021 | README opens with architecture, not the business outcome the PRD leads with | docs | `docs/07-PRD-DELTA.md` | **T16** | claude-code | OPEN |
 | F-022 | `BR:DIGITAL_SERVICES` stacks ICMS + ISS, which STF ADI 1945/5659 (2021) holds to be mutually exclusive on software | **25** | `docs/09-T13-REVISED.md` | **T13-R** | claude-code | OPEN |
+| F-023 | `AR:DIGITAL_SERVICES:PAIS` has `validTo: null` but Impuesto PAIS ended ~2024-12-22/23 | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | OPEN |
+| F-024 | `CO:CLOTHING:IVA` permanent COP threshold is invented (Días sin IVA were day-limited); notes misstate minor units | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | OPEN |
+| F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue / demo honesty | claude-code | OPEN |
 
 ## Resolutions
 
@@ -218,3 +221,35 @@ touch: `docs/09-T13-REVISED.md`.
 
 Sourced from the STF rulings as reported by Machado Associados, Mattos Filho
 and International Tax Review.
+
+### F-023 — OPEN — PAIS still open-ended after repeal · 25 pts · catalogue
+
+`AR:DIGITAL_SERVICES:PAIS` uses `rateBps: 800` and `validTo: null`. Impuesto
+PAIS was not extended and ended ~22–23 December 2024 (EY / VATupdate). Any
+fixture dated 2025+ that stacks PAIS is wrong to a domain reviewer.
+
+**Patch:** set `"validTo": "2024-12-23"` on that rule version. Exact JSON in
+`audit/findings/CURSOR-RULE-VERIFICATION.md`.
+
+### F-024 — OPEN — Colombia clothing threshold is not standing law · 25 pts · catalogue
+
+`CO:CLOTHING:IVA` sets `thresholdMinor: 1000000` with `validTo: null` and notes
+claiming COP 100,000 exemption. UVT clothing caps were part of **Días sin IVA**
+(Ley 2155 arts. 37–38), limited to decreed days and discontinued after Ley
+2277/2022. Notes also mis-convert minor units (1,000,000 minor = COP 10,000 at
+exponent 2, not COP 100,000).
+
+**Patch:** set `thresholdMinor: 0` and rewrite notes, or bound validity to an
+explicit illustrative demo with honest labeling. See
+`audit/findings/CURSOR-RULE-VERIFICATION.md`. Update `txn_co_0004/5/6` after.
+
+### F-025 — OPEN — Electronics 18% falsely attributed to EC 132 · accuracy · catalogue
+
+`BR:ELECTRONICS:ICMS` v2 cites "EC 132/2023 transition (CBS/IBS phase-in)" for
+an 18% ICMS rate from 2026-01-01. EC 132 / LC 214 introduce test IBS/CBS in
+2026; they do not mandate a nationwide ICMS electronics increase of 1pp on that
+date. Keeping a valid-time demo split is fine if labeled illustrative; citing
+EC 132 as the legal cause is not.
+
+**Patch:** rewrite `legalReference`/`notes`, or remove the invented bump. See
+`audit/findings/CURSOR-RULE-VERIFICATION.md`.

@@ -1,8 +1,8 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-03T03:00Z by `cowork`
-**Phase:** Build — executing `docs/02-BUILD-PLAN.md` T1–T5
-**Repo:** `NicT89/yuno-testNic` · branch `main` · 2 commits, `docs/`, `audit/`, `.cursor/` untracked
+**Last updated:** 2026-08-03T03:58Z by `cursor`
+**Phase:** Build — Claude Code on T1–T16; Cursor C1–C5 review artifacts landed
+**Repo:** `NicT89/yuno-testNic` · branch `main` · safety commit `90b8462` pushed (docs/audit/.cursor); app code still uncommitted locally
 
 ## File ownership (claim before editing, release when done)
 
@@ -10,20 +10,19 @@
 |---|---|---|---|
 | claude-code | `lib/**`, `app/api/**`, `scripts/**`, `data/*.json` | T1–T5 | 01:56Z |
 | claude-code | `lib/**`, `app/api/**`, `scripts/**`, `data/tax-rules.json`, `README.md` | T11–T16 | 03:35Z |
-| cursor | `audit/findings/CURSOR-*.md`, `audit/log/NNNN-cursor-*.md`, `audit/findings/FINDINGS.md` (append only), `docs/10-SUBMISSION-NOTES.md`, `verify/**`, `audit/ACTIVE.md` (ownership/blockers only) | C1–C5 review | 03:45Z |
+| cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
 
-**Unclaimed and safe:** `ARCHITECTURE.md`, `NOTES.md`, `reports/` (README claimed by claude-code for T16).
-**Do not touch:** `app/page.tsx` (no UI score), `docs/reference/**` (read-only reference build), `lib/**` `app/**` `scripts/**` `data/**` (claude-code mid-edit).
+**Unclaimed and safe for next agent:** `verify/**` (cursor-owned artifacts, free to run), `docs/10-SUBMISSION-NOTES.md`, `ARCHITECTURE.md`, `NOTES.md`, `reports/`.
+**Do not touch:** `app/page.tsx` (no UI score), `docs/reference/**` (read-only reference build), `lib/**` `app/**` `scripts/**` `data/**` while claude-code claim holds.
 
 ## Open blockers
 
-- **`npm run db:seed` must be run on the Mac.** `cowork` replaced
-  `data/transactions.json` with 56 working fixtures (F-012) but cannot execute
-  the seed: `node_modules` is darwin-arm64 and the audit sandbox is linux-arm64.
-  Until it runs, the audit trail holds 11 ad-hoc rows and the compliance report
-  is effectively empty.
+- **`npm run db:seed` must be run on the Mac** (F-012) before compliance report / smoke check 7 can pass with refunds.
+- **F-014 gate:** run `./verify/smoke-test.sh https://yuno-tax.vercel.app` — check 3 must PASS before submitting the Vercel Deliverable URL.
+- **Catalogue WRONG:** F-022, F-023, F-024, F-025 still open in `data/tax-rules.json`.
+- **F-009:** `git rm --cached data/yuno-tax.db` not yet executed.
 
 ## Decisions made (both closed 02:15Z)
 
