@@ -1,5 +1,12 @@
 [
   {
+    "_meta": {
+      "disclaimer": "ILLUSTRATIVE DATA. Rates, thresholds and effective dates were invented or approximated for demonstration. Not tax advice. The tax MECHANICS modelled here (treatments, stacking, thresholds, currency rounding, effective-dated versioning) are real; the numbers are not.",
+      "exception": "BR:DIGITAL_SERVICES ICMS exclusion is researched, not invented: STF ADI 1945/MT and ADI 5659/MG (2021).",
+      "generated": "seed data for TiendaMax tax engine"
+    }
+  },
+  {
     "ruleKey": "BR:*:ICMS",
     "version": 1,
     "countryCode": "BR",
@@ -16,7 +23,7 @@
     "validFrom": "2020-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "LC 87/1996 (Lei Kandir), standard interstate rate",
+    "legalReference": "Illustrative: LC 87/1996 (Lei Kandir), standard interstate rate",
     "notes": "Country default when no category-specific rule exists."
   },
   {
@@ -36,7 +43,7 @@
     "validFrom": "2020-01-01",
     "validTo": "2026-01-01",
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "LC 87/1996 (Lei Kandir)",
+    "legalReference": "Illustrative: LC 87/1996 (Lei Kandir)",
     "notes": "ICMS rate on electronics before the illustrative 2026-01-01 revision in v2. Closed in VALID TIME by that rate change, not superseded by us: v1 remains the correct answer for any transaction dated before 2026-01-01."
   },
   {
@@ -56,7 +63,7 @@
     "validFrom": "2026-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Illustrative state-level ICMS revision effective 2026-01-01 (NOT mandated by EC 132/2023)",
+    "legalReference": "Illustrative: modelled rate increase, used to demonstrate effective-dated versioning",
     "notes": "EC 132/2023 introduces the CBS/IBS transition; it does not by itself raise ICMS on electronics by one point on 2026-01-01. This version pair is an invented but plausible state-level rate change, and exists so a reviewer can see date-based selection: a transaction dated 2025-12-31 resolves to v1, one dated 2026-01-02 resolves to v2. Same rule_key, different valid window."
   },
   {
@@ -76,7 +83,7 @@
     "validFrom": "2020-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Cesta basica reduced rate",
+    "legalReference": "Illustrative: Cesta basica reduced rate",
     "notes": null
   },
   {
@@ -96,7 +103,7 @@
     "validFrom": "2020-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "CF/1988 art. 150, VI, d - immunity for books and periodicals",
+    "legalReference": "Illustrative: CF/1988 art. 150, VI, d - immunity for books and periodicals",
     "notes": null
   },
   {
@@ -156,7 +163,7 @@
     "validFrom": "2020-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Lei 10.865/2004 - PIS/COFINS-Importacao on imported services (1.65% + 7.6%)",
+    "legalReference": "Illustrative: Lei 10.865/2004 - PIS/COFINS-Importacao on imported services (1.65% + 7.6%)",
     "notes": "Federal layer on cross-border digital services. Replaces ICMS here: see the ISS rule's note for why ICMS cannot apply to software."
   },
   {
@@ -176,7 +183,7 @@
     "validFrom": "2020-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "LC 116/2003 - municipal service tax, Sao Paulo rate",
+    "legalReference": "Illustrative: LC 116/2003 - municipal service tax, Sao Paulo rate",
     "notes": "Stacks with federal PIS/COFINS-Importacao (9.25%) for 14.25% effective. ICMS deliberately does NOT apply to digital services: STF ADI 1945 and ADI 5659 (2021) held that software is subject to ISS, not ICMS, and the two are mutually exclusive on digital goods."
   },
   {
@@ -199,7 +206,6 @@
     "legalReference": null,
     "notes": null
   },
-
   {
     "ruleKey": "CO:*:IVA",
     "version": 1,
@@ -217,7 +223,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Estatuto Tributario art. 468 - general rate",
+    "legalReference": "Illustrative: Estatuto Tributario art. 468 - general rate",
     "notes": null
   },
   {
@@ -237,7 +243,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Estatuto Tributario art. 468-1",
+    "legalReference": "Illustrative: Estatuto Tributario art. 468-1",
     "notes": null
   },
   {
@@ -257,7 +263,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Estatuto Tributario art. 478 - cultural exemption",
+    "legalReference": "Illustrative: Estatuto Tributario art. 478 - cultural exemption",
     "notes": null
   },
   {
@@ -297,7 +303,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Estatuto Tributario art. 468 - general rate",
+    "legalReference": "Illustrative: day-limited VAT relief, modelled here as a permanent threshold to exercise threshold logic",
     "notes": "ILLUSTRATIVE THRESHOLD, not standing Colombian law: below COP 10,000.00 (1,000,000 minor units) no IVA is charged on clothing. Colombia's real UVT clothing caps applied only during day-limited 'Dias sin IVA' events (Ley 2155/2021 arts. 37-38), discontinued after Ley 2277/2022. Retained deliberately as the engine's threshold-boundary demo and labelled as invented rather than cited to a law that does not say this."
   },
   {
@@ -317,10 +323,9 @@
     "validFrom": "2018-07-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Ley 1819/2016 - IVA on non-resident digital services",
+    "legalReference": "Illustrative: Ley 1819/2016 - IVA on non-resident digital services",
     "notes": null
   },
-
   {
     "ruleKey": "AR:*:IVA",
     "version": 1,
@@ -338,7 +343,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Ley 23.349 - alicuota general",
+    "legalReference": "Illustrative: Ley 23.349 - alicuota general",
     "notes": null
   },
   {
@@ -378,7 +383,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Ley 25.446 - Ley del Libro",
+    "legalReference": "Illustrative: Ley 25.446 - Ley del Libro",
     "notes": null
   },
   {
@@ -418,7 +423,7 @@
     "validFrom": "2018-06-27",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "RG 4240/2018 - IVA on digital services to consumers",
+    "legalReference": "Illustrative: RG 4240/2018 - IVA on digital services to consumers",
     "notes": null
   },
   {
@@ -438,7 +443,7 @@
     "validFrom": "2018-06-27",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "RG 4240/2018 - responsable inscripto self-assesses",
+    "legalReference": "Illustrative: RG 4240/2018 - responsable inscripto self-assesses",
     "notes": "B2B digital services: seller collects nothing, the registered buyer self-assesses. Its exact customerType beats the wildcard on AR:DIGITAL_SERVICES:IVA, so it wins."
   },
   {
@@ -458,10 +463,9 @@
     "validFrom": "2020-01-01",
     "validTo": "2024-12-23",
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Ley 27.541 - Impuesto PAIS on cross-border digital services",
+    "legalReference": "Illustrative: Ley 27.541 - Impuesto PAIS on cross-border digital services (historical window)",
     "notes": "STACKS on top of IVA while PAIS was in force: 21% + 8% = 29% effective for B2C. CLOSED 2024-12-23, when the tax was not extended beyond December 2024. This is the second date-based selection demo: an Argentine B2C digital sale dated before that resolves both taxes, one dated after resolves IVA alone at 21%."
   },
-
   {
     "ruleKey": "CL:*:IVA",
     "version": 1,
@@ -479,7 +483,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "DL 825 - IVA general, no reduced rates in Chile",
+    "legalReference": "Illustrative: DL 825 - IVA general, no reduced rates in Chile",
     "notes": "Chile applies one rate to essentially everything, including books. CLP has no minor unit."
   },
   {
@@ -499,10 +503,9 @@
     "validFrom": "2020-06-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Ley 21.210 - IVA on foreign digital services",
+    "legalReference": "Illustrative: Ley 21.210 - IVA on foreign digital services",
     "notes": null
   },
-
   {
     "ruleKey": "PE:*:IGV",
     "version": 1,
@@ -520,7 +523,7 @@
     "validFrom": "2011-03-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "DL 821 - IGV 16% + IPM 2%",
+    "legalReference": "Illustrative: DL 821 - IGV 16% + IPM 2%",
     "notes": null
   },
   {
@@ -540,7 +543,7 @@
     "validFrom": "2011-03-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Apendice I - unprocessed agricultural goods",
+    "legalReference": "Illustrative: Apendice I - unprocessed agricultural goods",
     "notes": null
   },
   {
@@ -560,7 +563,7 @@
     "validFrom": "2011-03-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "Ley 31053 - Ley del Libro",
+    "legalReference": "Illustrative: Ley 31053 - Ley del Libro",
     "notes": null
   },
   {
@@ -600,7 +603,7 @@
     "validFrom": "2024-12-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": "DL 1623 - IGV on non-domiciled digital services",
+    "legalReference": "Illustrative: DL 1623 - IGV on non-domiciled digital services",
     "notes": "Valid only from 2024-12-01. A 2024-06 digital-services sale falls through to the PE:*:IGV wildcard, which exercises the fallback path."
   }
 ]

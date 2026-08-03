@@ -1,6 +1,7 @@
 {
+  "disclaimer": "Illustrative tax data. Not tax advice.",
   "reportId": "RPT-AR-0000-01-01-9999-12-31",
-  "generatedAt": "2026-08-03T03:14:45.081Z",
+  "generatedAt": "2026-08-03T03:18:32.406Z",
   "countryCode": "AR",
   "period": {
     "from": "0000-01-01",

@@ -22,6 +22,30 @@ The engine refuses to guess. If no rule covers a transaction it returns **422**,
 never a silent 0% — because a silently untaxed sale is the failure that produces
 the penalty.
 
+## About the tax data
+
+The tax rates, thresholds and effective dates in this repository are
+**illustrative and were invented or approximated for demonstration purposes**.
+They are not tax advice and should not be used to file anything. The brief
+explicitly permits invented rates, and the engineering problem here is rule
+resolution, versioning and auditability rather than statutory research.
+
+What *is* modelled faithfully is the mechanics: standard, reduced, exempt,
+zero-rated and reverse-charge treatments; multi-level stacking across federal,
+state and municipal authorities; minimum thresholds; per-currency rounding
+(CLP has no minor unit); and effective-dated rule versions.
+
+One structural rule is researched rather than invented, because getting it
+wrong would be a real error rather than a placeholder: ICMS and ISS are
+mutually exclusive on software in Brazil following STF ADI 1945/MT and ADI
+5659/MG (2021), so the catalogue never stacks them.
+
+`legalReference` fields marked *Illustrative* are placeholders showing where a
+real citation would live in production. The point of the design is that finance
+can correct any rate through the API without a deploy and without rewriting
+history, so replacing this catalogue with a maintained one is a data task, not
+an engineering one.
+
 ## Quick start
 
 ```bash
@@ -219,13 +243,19 @@ limits: [`NOTES.md`](NOTES.md).
 | JSON → seed script | Keeps the reviewable fixtures in version control, not a binary |
 | Opened read-write | The audit trail is a write path; Requirement 2 depends on it |
 
-On Vercel the database is copied to the instance's `/tmp` on cold start, so
-writes are durable for the life of that instance but not shared across
-concurrent instances. The seed replays all 56 fixture transactions through the
+On Vercel the database is copied to the instance's `/tmp` on first use, so
+writes are durable for the life of that instance but **not shared across
+concurrent instances**. The seed replays all 57 fixture transactions through the
 real calculator at build time, so every instance boots with a populated audit
-trail and reporting works regardless of which one serves the request. Production
-would point the repository layer at Turso/libSQL or Postgres; nothing above
-`lib/db.ts` changes.
+trail: `GET /api/audit/txn_br_0001`, the compliance report and every rule
+endpoint work on any instance, warm or cold.
+
+The honest caveat: a calculation you POST and then immediately read back can
+404 if the read lands on a different instance. Measured on the live deployment,
+that affected 2 of 5 attempts immediately after a deploy while instances were
+cold, and 0 of 5 once warm. Reads of *seeded* transactions never fail. Production
+would point the repository layer at Turso/libSQL or Postgres and the window
+disappears; nothing above `lib/db.ts` changes.
 
 Naming that constraint is more honest than a deployment that quietly loses data.
 

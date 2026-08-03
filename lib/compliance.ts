@@ -14,6 +14,7 @@ import { getDb } from "./db";
 import { formatMinor } from "./money";
 
 export interface ComplianceReport {
+  disclaimer: string;
   reportId: string;
   generatedAt: string;
   countryCode: string;
@@ -152,6 +153,7 @@ export function buildComplianceReport(
   const tax = Number(totals.tax) || 0;
 
   return {
+    disclaimer: "Illustrative tax data. Not tax advice.",
     reportId: `RPT-${countryCode}-${from.slice(0, 10)}-${to.slice(0, 10)}`,
     generatedAt: new Date().toISOString(),
     countryCode,

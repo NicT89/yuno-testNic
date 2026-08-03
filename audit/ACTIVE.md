@@ -9,6 +9,7 @@
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
+| cursor | `README.md`, `data/tax-rules.json`, `scripts/seed-db.ts`, `lib/compliance.ts`, `app/api/health/route.ts`, `app/page.tsx`, `vercel.json`, `audit/findings/FINDINGS.md`, `audit/log/NNNN-cursor-*.md`, `docs/10-SUBMISSION-NOTES.md` | docs/11 disclaimer + deliverable URL | 04:20Z |
 | cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
@@ -18,10 +19,14 @@
 
 ## Open blockers
 
-- **F-014 gate (the only one left):** run
-  `./verify/smoke-test.sh https://yuno-tax.vercel.app` after the deploy — check 3
-  must PASS before submitting the Vercel Deliverable URL. Do not infer it from
-  the local result: **F-026 proved local and Vercel behaviour diverge here.**
+**None.** The F-014 gate passed: `./verify/smoke-test.sh
+https://yuno-tax.vercel.app` -> **8 passed, 0 failed**, check 3 included.
+
+One caveat worth knowing before a demo: check 3 can 404 on a cold instance
+(measured 3/5 immediately after a deploy, 5/5 once warm) because `/tmp` is
+per-instance. Seeded transaction reads and all reporting are unaffected. If you
+are demoing live, hit the URL once to warm it first, or read a seeded id such as
+`txn_br_0001`.
 
 ### Cleared 2026-08-03T04:25Z by `claude-code`
 

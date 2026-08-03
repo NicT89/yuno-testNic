@@ -63,9 +63,28 @@ for (const suffix of ["", "-wal", "-shm"]) {
   if (existsSync(dbPath + suffix)) unlinkSync(dbPath + suffix);
 }
 
-const rules = JSON.parse(
+const rulesRaw = JSON.parse(
   readFileSync(join(dataDir, "tax-rules.json"), "utf-8"),
-) as SeedRule[];
+) as unknown;
+
+/** Accept either a bare array or `{ rules: [...] }`, and skip a leading `_meta` row. */
+function loadSeedRules(raw: unknown): SeedRule[] {
+  const list = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === "object" && Array.isArray((raw as { rules?: unknown }).rules)
+      ? (raw as { rules: unknown[] }).rules
+      : null;
+  if (!list) {
+    throw new Error("data/tax-rules.json must be an array of rules or `{ \"rules\": [...] }`");
+  }
+  return list.filter((row): row is SeedRule => {
+    if (!row || typeof row !== "object") return false;
+    if ("_meta" in (row as object)) return false;
+    return typeof (row as SeedRule).ruleKey === "string";
+  });
+}
+
+const rules = loadSeedRules(rulesRaw);
 
 // ---- 1. schema + reference data ---------------------------------------------
 // The schema lives in SQL, not in TypeScript string literals: it is the primary

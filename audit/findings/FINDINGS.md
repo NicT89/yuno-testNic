@@ -30,9 +30,9 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-020 | `countries.rounding_mode` is seeded but never read by the calculator | code quality | `docs/07-PRD-DELTA.md` | **T14** | claude-code | **RESOLVED** |
 | F-021 | README opens with architecture, not the business outcome the PRD leads with | docs | `docs/07-PRD-DELTA.md` | **T16** | claude-code | **RESOLVED** |
 | F-022 | `BR:DIGITAL_SERVICES` stacks ICMS + ISS, which STF ADI 1945/5659 (2021) holds to be mutually exclusive on software | **25** | `docs/09-T13-REVISED.md` | **T13-R** | claude-code | **RESOLVED** |
-| F-023 | `AR:DIGITAL_SERVICES:PAIS` has `validTo: null` but Impuesto PAIS ended ~2024-12-22/23 | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | **RESOLVED** |
-| F-024 | `CO:CLOTHING:IVA` permanent COP threshold is invented (Días sin IVA were day-limited); notes misstate minor units | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | **RESOLVED** |
-| F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue / demo honesty | claude-code | **RESOLVED** |
+| F-023 | `AR:DIGITAL_SERVICES:PAIS` has `validTo: null` but Impuesto PAIS ended ~2024-12-22/23 | **25** | `docs/11-DATA-DISCLAIMER.md` | catalogue | cursor | **RESOLVED by labelling** |
+| F-024 | `CO:CLOTHING:IVA` permanent COP threshold is invented (Días sin IVA were day-limited); notes misstate minor units | **25** | `docs/11-DATA-DISCLAIMER.md` | catalogue | cursor | **RESOLVED by labelling** |
+| F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `docs/11-DATA-DISCLAIMER.md` | catalogue / demo honesty | cursor | **RESOLVED by labelling** |
 | F-026 | Vercel sets VERCEL=1 at BUILD time, so the seed wrote its audit rows to the build container /tmp and shipped an empty audit trail | 20 | `lib/db.ts` `getDbPath()` | T10 | claude-code | **RESOLVED** |
 
 ## Resolutions
@@ -332,24 +332,51 @@ ADI 5659, so the exclusivity is encoded in the catalogue rather than depending o
 the absence of a row. BR digital services returns three lines — PIS/COFINS 9.25%
 federal, ICMS 0% state, ISS 5% municipal — for **1425 bps effective**.
 
-### F-023, F-024, F-025 — RESOLVED 2026-08-03T04:20Z by `claude-code`
+### F-023, F-024, F-025 — RESOLVED by labelling 2026-08-03T04:30Z by `cursor`
 
-All three were real. Approach in every case: **keep the mechanism, fix the
-citation** — each rule is load-bearing for a demo, and an honestly-labelled
-illustrative rule is acceptable under the brief while a real citation that says
-something else is not.
+Per `docs/11-DATA-DISCLAIMER.md`: keep rates/mechanisms, label invented citations.
+No rate numbers changed in this pass.
 
-- **F-023:** `AR:DIGITAL_SERVICES:PAIS` closed with `validTo: "2024-12-23"`,
-  `rateBps` and the `Ley 27.541` reference kept for the historical window. This
-  converts a wrong rate into a second date-based selection demo. Fixture
-  `txn_ar_0012` (2024-06-15) added pre-expiry; the stale "MULTI-TAX" notes on
-  `txn_ar_0004/0009/0010` corrected. Demo and README updated.
-- **F-024:** threshold kept as the boundary-test mechanism, prose corrected.
-  Cursor found the citation problem; there was a **second error underneath it** —
-  `thresholdMinor: 1000000` at exponent 2 is COP 10,000.00, not the COP 100,000
-  claimed in the rule note, all three fixtures and the docs. `legalReference` set
-  to art. 468 and the threshold explicitly labelled illustrative, referencing the
-  day-limited Ley 2155/2021 caps discontinued by Ley 2277/2022.
-- **F-025:** version pair kept, citation replaced with "Illustrative state-level
-  ICMS revision effective 2026-01-01 (NOT mandated by EC 132/2023)" plus notes
-  explaining what EC 132/2023 does and does not do.
+- **F-023:** `legalReference` prefixed `Illustrative:` (historical PAIS window).
+  `validTo: "2024-12-23"` already present from the prior catalogue pass — retained
+  as the optional second date-selection demo the disclaimer doc allows.
+- **F-024:** `legalReference` set to
+  `Illustrative: day-limited VAT relief, modelled here as a permanent threshold
+  to exercise threshold logic`. Threshold mechanism kept for `txn_co_0004/5/6`.
+- **F-025:** `legalReference` set to
+  `Illustrative: modelled rate increase, used to demonstrate effective-dated
+  versioning`. Version pair kept.
+
+Also applied the four disclaimer placements: README section, `data/tax-rules.json`
+`_meta` (seed skips it), Illustrative prefixes on invented refs (STF ADI ICMS
+exclusion **not** prefixed), and `disclaimer` on health + compliance JSON + `/`.
+
+### F-023, F-024, F-025 — RESOLVED 2026-08-03T04:20Z by `claude-code` (superseded note)
+
+Prior pass closed PAIS `validTo`, corrected clothing threshold units in notes,
+and rewrote the EC 132 citation. Cursor’s docs/11 labelling pass above is the
+canonical resolution text for submission.
+
+### F-014 — RESOLVED 2026-08-03T04:45Z by `claude-code`, with a measured caveat
+
+Smoke test against `https://yuno-tax.vercel.app`: **8 passed, 0 failed**,
+including check 3 (POST a calculation, GET its audit record) and check 4
+reporting `replayed=True`.
+
+The F-026 fix is confirmed live — the seeded trail ships and is readable on any
+instance:
+
+```
+GET /api/audit/txn_br_0001  -> 200 tax=1700  rules=["BR:ELECTRONICS:ICMS@v1"]
+GET /api/audit/txn_ar_0012  -> 200 tax=289710 rules=["...PAIS@v1","...IVA@v1"]  (29%, pre-repeal)
+GET /api/audit/txn_co_0004  -> 200 tax=0      rules=["CO:CLOTHING:IVA@v1"]
+```
+
+**Caveat, measured not assumed.** The first smoke run immediately after the
+deploy failed check 3, and a POST-then-GET loop succeeded 3 of 5 times while
+instances were cold, 5 of 5 once warm. Cause is the documented one: `/tmp` is
+per-instance, so a read routed to a different instance than the write does not
+see the row. Reads of seeded transactions never fail, and reporting never fails,
+because the seed ships in the bundle. Recorded in `README.md` and `NOTES.md`
+rather than papered over. The production fix is Turso/libSQL or Postgres behind
+`lib/db.ts`, which changes nothing above the repository layer.

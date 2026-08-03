@@ -6,7 +6,12 @@ Tax rules are stored append-only and bitemporally: `validFrom`/`validTo` select 
 
 | Field | Value |
 |---|---|
-| **Deliverable URL** | https://yuno-tax.vercel.app |
+| **Deliverable URL** | https://yuno-test-nic.vercel.app |
 | **GitHub Repository URL** | https://github.com/NicT89/yuno-testNic |
 
-Confirm the Deliverable URL still serves the latest deploy after Claude Code’s pending commits, and run `./verify/smoke-test.sh https://yuno-tax.vercel.app` before submitting — check 3 is the F-014 gate.
+Confirm the Deliverable URL serves the Next.js API (not a static 404). Project
+settings must use Framework Preset **Next.js**. Run
+`./verify/smoke-test.sh https://yuno-test-nic.vercel.app` before submitting —
+check 3 is the F-014 gate. Alternate working project alias:
+https://yuno-tax.vercel.app
+
