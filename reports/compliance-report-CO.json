@@ -1,0 +1,82 @@
+{
+  "disclaimer": "Illustrative tax data. Not tax advice.",
+  "reportId": "RPT-CO-0000-01-01-9999-12-31",
+  "generatedAt": "2026-08-03T03:18:32.405Z",
+  "countryCode": "CO",
+  "period": {
+    "from": "0000-01-01",
+    "to": "9999-12-31"
+  },
+  "currency": "COP",
+  "totals": {
+    "transactionsProcessed": 18,
+    "successfulCalculations": 18,
+    "grossBaseAmountMinor": 170730799,
+    "totalTaxCollectedMinor": 29894540,
+    "totalPayableMinor": 200625339,
+    "averageEffectiveRateBps": 1751
+  },
+  "byCategory": [
+    {
+      "productCategory": "digital_services",
+      "transactions": 2,
+      "baseAmountMinor": 128990000,
+      "taxAmountMinor": 24508100,
+      "effectiveRateBps": 1900
+    },
+    {
+      "productCategory": "clothing",
+      "transactions": 6,
+      "baseAmountMinor": 29999999,
+      "taxAmountMinor": 5320000,
+      "effectiveRateBps": 1773
+    },
+    {
+      "productCategory": "food",
+      "transactions": 3,
+      "baseAmountMinor": 1210800,
+      "taxAmountMinor": 60540,
+      "effectiveRateBps": 500
+    },
+    {
+      "productCategory": "electronics",
+      "transactions": 5,
+      "baseAmountMinor": 30000,
+      "taxAmountMinor": 5900,
+      "effectiveRateBps": 1967
+    },
+    {
+      "productCategory": "medicine",
+      "transactions": 1,
+      "baseAmountMinor": 4500000,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    },
+    {
+      "productCategory": "books",
+      "transactions": 1,
+      "baseAmountMinor": 6000000,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    }
+  ],
+  "byTaxType": [
+    {
+      "taxType": "IVA",
+      "taxAmountMinor": 29894540,
+      "taxLines": 18
+    }
+  ],
+  "edgeCases": {
+    "zeroAmount": 0,
+    "refunds": 1,
+    "exempt": 4,
+    "belowThreshold": 2,
+    "errors": 0,
+    "errorDetail": []
+  },
+  "rulesetVersionsInPeriod": [
+    1,
+    2
+  ]
+}

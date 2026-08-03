@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "pretest": "npm run db:seed",
-    "test": "tsx scripts/test-tax.ts"
+    "test": "tsx scripts/test-tax.ts",
+    "demo": "npm run db:seed && tsx scripts/demo.ts"
   },
   "engines": {
     "node": ">=22"

@@ -1,140 +1,101 @@
 /**
- * Tax rule store with date-based version resolution.
+ * Rule resolution. PURE function: candidates in, applicable rules out.
+ * No database, no HTTP, no clock — both time instants are passed in.
  *
- * Rules are persisted in SQLite (`tax_rules`), seeded from `data/tax-rules.json`.
- * For a given (country, region, category, date) we select the single best match.
+ * TWO INDEPENDENT TIME AXES (see scripts/schema.sql for the full rationale):
+ *
+ *   valid time  (validFrom / validTo)       selected by TRANSACTION DATE
+ *       "which rate was the law when this sale happened?"
+ *
+ *   system time (recordedAt / supersededAt) selected by AS-OF INSTANT
+ *       "which rate did we believe at the moment we computed this?"
+ *
+ * Recalculating a historical transaction with `asOf` pinned to the original
+ * `created_at` reproduces the original answer, even if a reviewer has since
+ * edited the rule. That is the whole point of keeping the axes separate.
  */
 
-import { getDb } from "./db";
-import type { CountryCode, TaxCategory, TaxRule } from "./types";
+import type { TaxRuleVersion } from "./types";
 
-interface RuleRow {
-  id: string;
-  version: number;
-  country: string;
-  region: string | null;
-  category: string;
-  rate: number;
-  tax_name: string;
-  effective_from: string;
-  effective_to: string | null;
-  notes: string | null;
-}
-
-function mapRule(row: RuleRow): TaxRule {
-  return {
-    id: row.id,
-    version: row.version,
-    country: row.country,
-    region: row.region,
-    category: row.category as TaxCategory,
-    rate: row.rate,
-    taxName: row.tax_name,
-    effectiveFrom: row.effective_from,
-    effectiveTo: row.effective_to,
-    notes: row.notes ?? undefined,
-  };
-}
-
-/** Return all rule versions from SQLite. */
-export function loadTaxRules(): TaxRule[] {
-  const rows = getDb()
-    .prepare(
-      `SELECT id, version, country, region, category, rate, tax_name,
-              effective_from, effective_to, notes
-       FROM tax_rules
-       ORDER BY id, version`,
-    )
-    .all() as unknown as RuleRow[];
-  return rows.map(mapRule);
-}
-
-/**
- * Specificity score used when multiple rules could apply.
- * Regional rules beat country-wide rules.
- */
-function specificity(rule: TaxRule, region: string | null | undefined): number {
-  if (rule.region && region && rule.region === region) return 2;
-  if (rule.region === null) return 1;
-  return 0;
-}
-
-export interface ResolveRuleInput {
-  country: CountryCode;
-  region?: string | null;
-  category: TaxCategory;
-  /** ISO date (YYYY-MM-DD). */
+export interface ResolveQuery {
+  countryCode: string;
+  productCategory: string;
+  customerType: string;
+  /** ISO-8601. Drives VALID-TIME selection. */
   transactionDate: string;
+  /** ISO-8601. Drives SYSTEM-TIME selection. */
+  asOf: string;
+}
+
+const WILDCARD = "*";
+
+function withinValidTime(rule: TaxRuleVersion, transactionDate: string): boolean {
+  if (transactionDate < rule.validFrom) return false;
+  if (rule.validTo !== null && transactionDate >= rule.validTo) return false;
+  return true;
+}
+
+function withinSystemTime(rule: TaxRuleVersion, asOf: string): boolean {
+  if (asOf < rule.recordedAt) return false;
+  if (rule.supersededAt !== null && asOf >= rule.supersededAt) return false;
+  return true;
 }
 
 /**
- * Resolve the applicable rule version for a transaction.
- *
- * Algorithm:
- * 1. Filter by country + category + effective date window.
- * 2. Prefer regional match over country-wide.
- * 3. Prefer higher version number when dates overlap.
+ * Specificity score. A rule written for the exact category beats a country-wide
+ * default; a rule written for the exact customer type beats a wildcard. This is
+ * how "Argentina digital services for a business" picks the reverse-charge rule
+ * rather than the generic 21% IVA rule.
  */
-export function resolveTaxRule(input: ResolveRuleInput): TaxRule | null {
-  const { country, region = null, category, transactionDate } = input;
-
-  // Push the cheap filters into SQL; finish specificity/version ranking in JS.
-  const rows = getDb()
-    .prepare(
-      `SELECT id, version, country, region, category, rate, tax_name,
-              effective_from, effective_to, notes
-       FROM tax_rules
-       WHERE country = ?
-         AND category = ?
-         AND effective_from <= ?
-         AND (effective_to IS NULL OR effective_to >= ?)
-         AND (region IS NULL OR region = ?)`,
-    )
-    .all(
-      country,
-      category,
-      transactionDate,
-      transactionDate,
-      region,
-    ) as unknown as RuleRow[];
-
-  const candidates = rows.map(mapRule);
-  if (candidates.length === 0) return null;
-
-  candidates.sort((a, b) => {
-    const specDiff = specificity(b, region) - specificity(a, region);
-    if (specDiff !== 0) return specDiff;
-    return b.version - a.version;
-  });
-
-  return candidates[0];
+function specificity(rule: TaxRuleVersion): number {
+  let score = 0;
+  if (rule.productCategory !== WILDCARD) score += 4;
+  if (rule.customerType !== WILDCARD) score += 2;
+  return score;
 }
 
-/** List all versions for a rule id, oldest first. */
-export function getRuleHistory(ruleId: string): TaxRule[] {
-  const rows = getDb()
-    .prepare(
-      `SELECT id, version, country, region, category, rate, tax_name,
-              effective_from, effective_to, notes
-       FROM tax_rules
-       WHERE id = ?
-       ORDER BY version ASC`,
-    )
-    .all(ruleId) as unknown as RuleRow[];
-  return rows.map(mapRule);
+function matches(rule: TaxRuleVersion, q: ResolveQuery): boolean {
+  if (rule.countryCode !== q.countryCode) return false;
+  if (
+    rule.productCategory !== WILDCARD &&
+    rule.productCategory !== q.productCategory
+  ) {
+    return false;
+  }
+  if (rule.customerType !== WILDCARD && rule.customerType !== q.customerType) {
+    return false;
+  }
+  return withinValidTime(rule, q.transactionDate) && withinSystemTime(rule, q.asOf);
 }
 
-/** Filter rules by optional country. */
-export function listRules(country?: CountryCode): TaxRule[] {
-  if (!country) return loadTaxRules();
-  const rows = getDb()
-    .prepare(
-      `SELECT id, version, country, region, category, rate, tax_name,
-              effective_from, effective_to, notes
-       FROM tax_rules
-       WHERE country = ?
-       ORDER BY id, version`,
-    )
-    .all(country) as unknown as RuleRow[];
-  return rows.map(mapRule);
+/**
+ * Returns every tax that applies to this transaction, ordered by `priority`.
+ *
+ * A country may levy several taxes on one sale (Brazil: state ICMS plus
+ * municipal ISS on digital services). We therefore resolve ONE winning rule
+ * PER tax type rather than one rule overall — that is what makes stacking work
+ * without letting two competing ICMS versions both fire.
+ */
+export function resolveApplicableRules(
+  candidates: TaxRuleVersion[],
+  q: ResolveQuery,
+): TaxRuleVersion[] {
+  const applicable = candidates.filter((r) => matches(r, q));
+
+  const winnerByTaxType = new Map<string, TaxRuleVersion>();
+  for (const rule of applicable) {
+    const current = winnerByTaxType.get(rule.taxType);
+    if (!current) {
+      winnerByTaxType.set(rule.taxType, rule);
+      continue;
+    }
+    const better =
+      specificity(rule) > specificity(current) ||
+      (specificity(rule) === specificity(current) && rule.version > current.version);
+    if (better) winnerByTaxType.set(rule.taxType, rule);
+  }
+
+  return [...winnerByTaxType.values()].sort(
+    (a, b) => a.priority - b.priority || a.taxType.localeCompare(b.taxType),
+  );
 }

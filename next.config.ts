@@ -6,9 +6,10 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
-  // Ensure the seeded SQLite file is bundled with every API serverless function.
+  // Ensure the seeded SQLite file and the fixtures are bundled with every API
+  // serverless function. The schema is only needed at seed time.
   outputFileTracingIncludes: {
-    "/*": ["./data/yuno-tax.db"],
+    "/*": ["./data/yuno-tax.db", "./data/transactions.json"],
   },
 };
 

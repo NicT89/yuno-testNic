@@ -1,0 +1,111 @@
+{
+  "disclaimer": "Illustrative tax data. Not tax advice.",
+  "reportId": "RPT-BR-0000-01-01-9999-12-31",
+  "generatedAt": "2026-08-03T03:18:32.405Z",
+  "countryCode": "BR",
+  "period": {
+    "from": "0000-01-01",
+    "to": "9999-12-31"
+  },
+  "currency": "BRL",
+  "totals": {
+    "transactionsProcessed": 27,
+    "successfulCalculations": 26,
+    "grossBaseAmountMinor": 602229,
+    "totalTaxCollectedMinor": 95737,
+    "totalPayableMinor": 697966,
+    "averageEffectiveRateBps": 1590
+  },
+  "byCategory": [
+    {
+      "productCategory": "electronics",
+      "transactions": 15,
+      "baseAmountMinor": 349990,
+      "taxAmountMinor": 62798,
+      "effectiveRateBps": 1794
+    },
+    {
+      "productCategory": "digital_services",
+      "transactions": 3,
+      "baseAmountMinor": 179999,
+      "taxAmountMinor": 25650,
+      "effectiveRateBps": 1425
+    },
+    {
+      "productCategory": "clothing",
+      "transactions": 1,
+      "baseAmountMinor": 32000,
+      "taxAmountMinor": 5440,
+      "effectiveRateBps": 1700
+    },
+    {
+      "productCategory": "food",
+      "transactions": 3,
+      "baseAmountMinor": 15440,
+      "taxAmountMinor": 1081,
+      "effectiveRateBps": 700
+    },
+    {
+      "productCategory": "medicine",
+      "transactions": 1,
+      "baseAmountMinor": 6400,
+      "taxAmountMinor": 768,
+      "effectiveRateBps": 1200
+    },
+    {
+      "productCategory": "unicorns",
+      "transactions": 1,
+      "baseAmountMinor": 0,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    },
+    {
+      "productCategory": "education",
+      "transactions": 1,
+      "baseAmountMinor": 500,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    },
+    {
+      "productCategory": "books",
+      "transactions": 2,
+      "baseAmountMinor": 17900,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    }
+  ],
+  "byTaxType": [
+    {
+      "taxType": "ICMS",
+      "taxAmountMinor": 70087,
+      "taxLines": 24
+    },
+    {
+      "taxType": "PIS_COFINS_IMPORT",
+      "taxAmountMinor": 16650,
+      "taxLines": 3
+    },
+    {
+      "taxType": "ISS",
+      "taxAmountMinor": 9000,
+      "taxLines": 3
+    }
+  ],
+  "edgeCases": {
+    "zeroAmount": 2,
+    "refunds": 2,
+    "exempt": 3,
+    "belowThreshold": 0,
+    "errors": 1,
+    "errorDetail": [
+      {
+        "code": "NO_APPLICABLE_RULE",
+        "count": 1,
+        "sample": "No tax rule is on file for BR/unicorns/individual effective 2015-01-01T12:00:00.000Z. Refusing to assume 0%: an unpriced tax is a compliance risk."
+      }
+    ]
+  },
+  "rulesetVersionsInPeriod": [
+    1
+  ]
+}

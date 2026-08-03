@@ -1,28 +1,43 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-03T03:58Z by `cursor`
-**Phase:** Build — Claude Code on T1–T16; Cursor C1–C5 review artifacts landed
-**Repo:** `NicT89/yuno-testNic` · branch `main` · safety commit `90b8462` pushed (docs/audit/.cursor); app code still uncommitted locally
+**Last updated:** 2026-08-03T04:25Z by `claude-code`
+**Phase:** Ship — T1–T16 complete and verified locally; committing, then deploy + smoke test
+**Repo:** `NicT89/yuno-testNic` · branch `main` · app code being committed now
 
 ## File ownership (claim before editing, release when done)
 
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
-| claude-code | `lib/**`, `app/api/**`, `scripts/**`, `data/*.json` | T1–T5 | 01:56Z |
-| claude-code | `lib/**`, `app/api/**`, `scripts/**`, `data/tax-rules.json`, `README.md` | T11–T16 | 03:35Z |
+| claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
+| cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
 | cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
 
 **Unclaimed and safe for next agent:** `verify/**` (cursor-owned artifacts, free to run), `docs/10-SUBMISSION-NOTES.md`, `ARCHITECTURE.md`, `NOTES.md`, `reports/`.
-**Do not touch:** `app/page.tsx` (no UI score), `docs/reference/**` (read-only reference build), `lib/**` `app/**` `scripts/**` `data/**` while claude-code claim holds.
+**Do not touch:** `app/page.tsx` (no UI score), `docs/reference/**` (read-only reference build).
 
 ## Open blockers
 
-- **`npm run db:seed` must be run on the Mac** (F-012) before compliance report / smoke check 7 can pass with refunds.
-- **F-014 gate:** run `./verify/smoke-test.sh https://yuno-tax.vercel.app` — check 3 must PASS before submitting the Vercel Deliverable URL.
-- **Catalogue WRONG:** F-022, F-023, F-024, F-025 still open in `data/tax-rules.json`.
-- **F-009:** `git rm --cached data/yuno-tax.db` not yet executed.
+**None.** The F-014 gate passed: `./verify/smoke-test.sh
+https://yuno-tax.vercel.app` -> **8 passed, 0 failed**, check 3 included.
+
+One caveat worth knowing before a demo: check 3 can 404 on a cold instance
+(measured 3/5 immediately after a deploy, 5/5 once warm) because `/tmp` is
+per-instance. Seeded transaction reads and all reporting are unaffected. If you
+are demoing live, hit the URL once to warm it first, or read a seeded id such as
+`txn_br_0001`.
+
+### Cleared 2026-08-03T04:25Z by `claude-code`
+
+- ~~`npm run db:seed` must be run on the Mac~~ — run: **57 fixtures calculated,
+  0 errors**. Compliance reports populated for all five countries.
+- ~~Catalogue WRONG: F-022/023/024/025~~ — all four remediated; see
+  `audit/log/0013-claude-code-catalogue-accuracy.md`.
+- ~~F-009: `git rm --cached data/yuno-tax.db`~~ — executed with this commit.
+- **New and already closed: F-026.** The build-time seed was writing the audit
+  trail into the Vercel build container's `/tmp` and discarding it. Had this
+  shipped, smoke check 3 would have 404'd in production.
 
 ## Decisions made (both closed 02:15Z)
 

@@ -1,145 +1,519 @@
 [
   {
-    "id": "txn-mx-001",
-    "country": "MX",
-    "region": null,
-    "category": "standard",
-    "amount": 100000,
-    "amountMode": "exclusive",
-    "currency": "MXN",
-    "transactionDate": "2025-03-15",
-    "description": "Electronics purchase — MXN 1,000.00 exclusive of IVA"
+    "transactionId": "txn_br_0001",
+    "countryCode": "BR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 10000,
+    "transactionDate": "2025-11-15T12:00:00.000Z",
+    "note": "ICMS v1 @17% (pre-2026)"
   },
   {
-    "id": "txn-mx-002",
-    "country": "MX",
-    "region": null,
-    "category": "food",
-    "amount": 25000,
-    "amountMode": "exclusive",
-    "currency": "MXN",
-    "transactionDate": "2025-03-16",
-    "description": "Grocery staples — zero-rated food"
+    "transactionId": "txn_br_0002",
+    "countryCode": "BR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 10000,
+    "transactionDate": "2026-03-15T12:00:00.000Z",
+    "note": "ICMS v2 @18% (post-reform) - SAME inputs, different date"
   },
   {
-    "id": "txn-mx-003",
-    "country": "MX",
-    "region": null,
-    "category": "digital",
-    "amount": 11600,
-    "amountMode": "inclusive",
-    "currency": "MXN",
-    "transactionDate": "2025-06-01",
-    "description": "SaaS subscription billed tax-inclusive (MXN 116.00)"
+    "transactionId": "txn_br_0003",
+    "countryCode": "BR",
+    "productCategory": "electronics",
+    "customerType": "business",
+    "amountMinor": 249990,
+    "transactionDate": "2026-04-02T12:00:00.000Z",
+    "note": "Large B2B electronics"
   },
   {
-    "id": "txn-mx-004",
-    "country": "MX",
-    "region": null,
-    "category": "digital",
-    "amount": 50000,
-    "amountMode": "exclusive",
-    "currency": "MXN",
-    "transactionDate": "2023-08-10",
-    "description": "Digital download under digital rule v1 (pre-2025)"
+    "transactionId": "txn_br_0004",
+    "countryCode": "BR",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 4550,
+    "transactionDate": "2026-02-10T12:00:00.000Z",
+    "note": "Reduced 7% food rate"
   },
   {
-    "id": "txn-mx-005",
-    "country": "MX",
-    "region": null,
-    "category": "exempt",
-    "amount": 80000,
-    "amountMode": "exclusive",
-    "currency": "MXN",
-    "transactionDate": "2025-04-02",
-    "description": "Exempt educational service"
+    "transactionId": "txn_br_0005",
+    "countryCode": "BR",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 890,
+    "transactionDate": "2026-02-11T12:00:00.000Z",
+    "note": "Small-ticket food"
   },
   {
-    "id": "txn-mx-006",
-    "country": "MX",
-    "region": null,
-    "category": "standard",
-    "amount": 348000,
-    "amountMode": "inclusive",
-    "currency": "MXN",
-    "transactionDate": "2025-05-20",
-    "description": "Furniture set billed inclusive of IVA (MXN 3,480.00)"
+    "transactionId": "txn_br_0006",
+    "countryCode": "BR",
+    "productCategory": "books",
+    "customerType": "individual",
+    "amountMinor": 7900,
+    "transactionDate": "2026-02-12T12:00:00.000Z",
+    "note": "Constitutional book immunity: 0%"
   },
   {
-    "id": "txn-us-001",
-    "country": "US",
-    "region": "CA",
-    "category": "standard",
-    "amount": 20000,
-    "amountMode": "exclusive",
-    "currency": "USD",
-    "transactionDate": "2025-02-01",
-    "description": "Retail purchase in California — USD 200.00"
+    "transactionId": "txn_br_0007",
+    "countryCode": "BR",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": 19999,
+    "transactionDate": "2026-02-13T12:00:00.000Z",
+    "note": "MULTI-TAX: ICMS 17% + ISS 5% stacked"
   },
   {
-    "id": "txn-us-002",
-    "country": "US",
-    "region": "CA",
-    "category": "food",
-    "amount": 4500,
-    "amountMode": "exclusive",
-    "currency": "USD",
-    "transactionDate": "2025-02-01",
-    "description": "Grocery food exempt in CA"
+    "transactionId": "txn_br_0008",
+    "countryCode": "BR",
+    "productCategory": "digital_services",
+    "customerType": "business",
+    "amountMinor": 150000,
+    "transactionDate": "2026-03-01T12:00:00.000Z",
+    "note": "Large stacked B2B digital"
   },
   {
-    "id": "txn-us-003",
-    "country": "US",
-    "region": "NY",
-    "category": "standard",
-    "amount": 15000,
-    "amountMode": "exclusive",
-    "currency": "USD",
-    "transactionDate": "2025-01-12",
-    "description": "NY state sales tax only — USD 150.00"
+    "transactionId": "txn_br_0009",
+    "countryCode": "BR",
+    "productCategory": "clothing",
+    "customerType": "individual",
+    "amountMinor": 32000,
+    "transactionDate": "2026-03-05T12:00:00.000Z",
+    "note": "Falls through to BR:*:ICMS wildcard"
   },
   {
-    "id": "txn-us-004",
-    "country": "US",
-    "region": "NY",
-    "category": "clothing",
-    "amount": 7500,
-    "amountMode": "exclusive",
-    "currency": "USD",
-    "transactionDate": "2025-01-12",
-    "description": "Clothing under NY exemption simplification"
+    "transactionId": "txn_br_0010",
+    "countryCode": "BR",
+    "productCategory": "medicine",
+    "customerType": "individual",
+    "amountMinor": 6400,
+    "transactionDate": "2026-03-06T12:00:00.000Z",
+    "note": "Reduced 12% medicine"
   },
   {
-    "id": "txn-co-001",
-    "country": "CO",
-    "region": null,
-    "category": "standard",
-    "amount": 119000,
-    "amountMode": "inclusive",
-    "currency": "COP",
-    "transactionDate": "2025-07-01",
-    "description": "Standard-rated goods in Colombia (COP 1,190.00 inclusive)"
+    "transactionId": "txn_br_0011",
+    "countryCode": "BR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 25000,
+    "discountMinor": 5000,
+    "transactionDate": "2026-03-07T12:00:00.000Z",
+    "note": "Discount reduces the net taxable base"
   },
   {
-    "id": "txn-co-002",
-    "country": "CO",
-    "region": null,
-    "category": "reduced",
-    "amount": 100000,
-    "amountMode": "exclusive",
-    "currency": "COP",
-    "transactionDate": "2025-07-02",
-    "description": "Reduced-rate goods — COP 1,000.00 exclusive"
+    "transactionId": "txn_br_0012",
+    "countryCode": "BR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 0,
+    "transactionDate": "2026-03-08T12:00:00.000Z",
+    "note": "EDGE: zero amount"
   },
   {
-    "id": "txn-co-003",
-    "country": "CO",
-    "region": null,
-    "category": "exempt",
-    "amount": 50000,
-    "amountMode": "exclusive",
-    "currency": "COP",
-    "transactionDate": "2025-07-03",
-    "description": "Exempt Colombian service"
+    "transactionId": "txn_br_0013",
+    "countryCode": "BR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": -10000,
+    "transactionDate": "2026-03-09T12:00:00.000Z",
+    "note": "EDGE: refund, tax reversed at same rate"
+  },
+  {
+    "transactionId": "txn_br_0014",
+    "countryCode": "BR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 11800,
+    "priceIncludesTax": true,
+    "transactionDate": "2026-03-10T12:00:00.000Z",
+    "note": "Tax-inclusive price decomposed back to 100.00 base"
+  },
+  {
+    "transactionId": "txn_br_0015",
+    "countryCode": "BR",
+    "productCategory": "education",
+    "customerType": "individual",
+    "amountMinor": 500,
+    "transactionDate": "2026-03-11T12:00:00.000Z",
+    "note": "Exempt category, tiny amount"
+  },
+  {
+    "transactionId": "txn_co_0001",
+    "countryCode": "CO",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 25000000,
+    "transactionDate": "2026-01-20T12:00:00.000Z",
+    "note": "IVA 19% standard"
+  },
+  {
+    "transactionId": "txn_co_0002",
+    "countryCode": "CO",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 1200000,
+    "transactionDate": "2026-01-21T12:00:00.000Z",
+    "note": "Reduced 5% food"
+  },
+  {
+    "transactionId": "txn_co_0003",
+    "countryCode": "CO",
+    "productCategory": "books",
+    "customerType": "individual",
+    "amountMinor": 6000000,
+    "transactionDate": "2026-01-22T12:00:00.000Z",
+    "note": "Books exempt"
+  },
+  {
+    "transactionId": "txn_co_0004",
+    "countryCode": "CO",
+    "productCategory": "clothing",
+    "customerType": "individual",
+    "amountMinor": 999999,
+    "transactionDate": "2026-01-23T12:00:00.000Z",
+    "note": "EDGE: 1 centavo BELOW the illustrative COP 10,000.00 clothing threshold -> exempt"
+  },
+  {
+    "transactionId": "txn_co_0005",
+    "countryCode": "CO",
+    "productCategory": "clothing",
+    "customerType": "individual",
+    "amountMinor": 1000000,
+    "transactionDate": "2026-01-24T12:00:00.000Z",
+    "note": "EDGE: exactly AT the COP 10,000.00 threshold -> taxed"
+  },
+  {
+    "transactionId": "txn_co_0006",
+    "countryCode": "CO",
+    "productCategory": "clothing",
+    "customerType": "individual",
+    "amountMinor": 1000001,
+    "transactionDate": "2026-01-25T12:00:00.000Z",
+    "note": "EDGE: 1 centavo ABOVE the COP 10,000.00 threshold -> taxed"
+  },
+  {
+    "transactionId": "txn_co_0007",
+    "countryCode": "CO",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": 8990000,
+    "transactionDate": "2026-01-26T12:00:00.000Z",
+    "note": "Digital services 19%"
+  },
+  {
+    "transactionId": "txn_co_0008",
+    "countryCode": "CO",
+    "productCategory": "digital_services",
+    "customerType": "business",
+    "amountMinor": 120000000,
+    "transactionDate": "2026-02-01T12:00:00.000Z",
+    "note": "Large B2B digital (CO has no reverse charge rule: still 19%)"
+  },
+  {
+    "transactionId": "txn_co_0009",
+    "countryCode": "CO",
+    "productCategory": "medicine",
+    "customerType": "individual",
+    "amountMinor": 4500000,
+    "transactionDate": "2026-02-02T12:00:00.000Z",
+    "note": "Medicine exempt"
+  },
+  {
+    "transactionId": "txn_co_0010",
+    "countryCode": "CO",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": -25000000,
+    "transactionDate": "2026-02-03T12:00:00.000Z",
+    "note": "EDGE: refund of txn_co_0001"
+  },
+  {
+    "transactionId": "txn_co_0011",
+    "countryCode": "CO",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 800,
+    "transactionDate": "2026-02-04T12:00:00.000Z",
+    "note": "Sub-USD-10 micro transaction, rounding pressure"
+  },
+  {
+    "transactionId": "txn_ar_0001",
+    "countryCode": "AR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 1500000,
+    "transactionDate": "2026-01-10T12:00:00.000Z",
+    "note": "IVA 21% via AR:*:IVA wildcard"
+  },
+  {
+    "transactionId": "txn_ar_0002",
+    "countryCode": "AR",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 235000,
+    "transactionDate": "2026-01-11T12:00:00.000Z",
+    "note": "Reduced 10.5% food"
+  },
+  {
+    "transactionId": "txn_ar_0003",
+    "countryCode": "AR",
+    "productCategory": "books",
+    "customerType": "individual",
+    "amountMinor": 480000,
+    "transactionDate": "2026-01-12T12:00:00.000Z",
+    "note": "Ley del Libro: exempt"
+  },
+  {
+    "transactionId": "txn_ar_0012",
+    "countryCode": "AR",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": 999000,
+    "transactionDate": "2024-06-15T12:00:00.000Z",
+    "note": "MULTI-TAX: IVA 21% + PAIS 8% = 29%, dated while Impuesto PAIS was still in force. Same inputs as txn_ar_0004, different date."
+  },
+  {
+    "transactionId": "txn_ar_0004",
+    "countryCode": "AR",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": 999000,
+    "transactionDate": "2026-01-13T12:00:00.000Z",
+    "note": "IVA 21% only: dated after Impuesto PAIS lapsed on 2024-12-23"
+  },
+  {
+    "transactionId": "txn_ar_0005",
+    "countryCode": "AR",
+    "productCategory": "digital_services",
+    "customerType": "business",
+    "amountMinor": 999000,
+    "transactionDate": "2026-01-14T12:00:00.000Z",
+    "note": "B2B REVERSE CHARGE: identical amount, zero collected"
+  },
+  {
+    "transactionId": "txn_ar_0006",
+    "countryCode": "AR",
+    "productCategory": "clothing",
+    "customerType": "individual",
+    "amountMinor": 12000000,
+    "transactionDate": "2026-01-15T12:00:00.000Z",
+    "note": "Large clothing, wildcard 21%"
+  },
+  {
+    "transactionId": "txn_ar_0007",
+    "countryCode": "AR",
+    "productCategory": "medicine",
+    "customerType": "individual",
+    "amountMinor": 320000,
+    "transactionDate": "2026-01-16T12:00:00.000Z",
+    "note": "Reduced 10.5% medicine"
+  },
+  {
+    "transactionId": "txn_ar_0008",
+    "countryCode": "AR",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 55000,
+    "discountMinor": 5500,
+    "transactionDate": "2026-01-17T12:00:00.000Z",
+    "note": "10% discount then 21% IVA on the net"
+  },
+  {
+    "transactionId": "txn_ar_0009",
+    "countryCode": "AR",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": 0,
+    "transactionDate": "2026-01-18T12:00:00.000Z",
+    "note": "EDGE: zero amount on a digital-services sale"
+  },
+  {
+    "transactionId": "txn_ar_0010",
+    "countryCode": "AR",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": -999000,
+    "transactionDate": "2026-01-19T12:00:00.000Z",
+    "note": "EDGE: refund reverses the IVA charged on the original sale"
+  },
+  {
+    "transactionId": "txn_ar_0011",
+    "countryCode": "AR",
+    "productCategory": "education",
+    "customerType": "individual",
+    "amountMinor": 99900,
+    "transactionDate": "2026-01-20T12:00:00.000Z",
+    "note": "No AR education rule: falls back to wildcard 21%"
+  },
+  {
+    "transactionId": "txn_cl_0001",
+    "countryCode": "CL",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 89990,
+    "transactionDate": "2026-02-05T12:00:00.000Z",
+    "note": "CLP has NO minor unit: 89990 = CLP 89,990"
+  },
+  {
+    "transactionId": "txn_cl_0002",
+    "countryCode": "CL",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 3490,
+    "transactionDate": "2026-02-06T12:00:00.000Z",
+    "note": "Chile has no reduced food rate: still 19%"
+  },
+  {
+    "transactionId": "txn_cl_0003",
+    "countryCode": "CL",
+    "productCategory": "books",
+    "customerType": "individual",
+    "amountMinor": 12990,
+    "transactionDate": "2026-02-07T12:00:00.000Z",
+    "note": "Chile taxes books at 19% (unlike BR/CO/AR/PE)"
+  },
+  {
+    "transactionId": "txn_cl_0004",
+    "countryCode": "CL",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 7,
+    "transactionDate": "2026-02-08T12:00:00.000Z",
+    "note": "EDGE: CLP 7 -> 19% = 1.33 -> rounds to whole peso"
+  },
+  {
+    "transactionId": "txn_cl_0005",
+    "countryCode": "CL",
+    "productCategory": "digital_services",
+    "customerType": "business",
+    "amountMinor": 1250000,
+    "transactionDate": "2026-02-09T12:00:00.000Z",
+    "note": "Large B2B digital service"
+  },
+  {
+    "transactionId": "txn_cl_0006",
+    "countryCode": "CL",
+    "productCategory": "clothing",
+    "customerType": "individual",
+    "amountMinor": 45000,
+    "transactionDate": "2026-02-10T12:00:00.000Z",
+    "note": "Wildcard 19%"
+  },
+  {
+    "transactionId": "txn_cl_0007",
+    "countryCode": "CL",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": -89990,
+    "transactionDate": "2026-02-11T12:00:00.000Z",
+    "note": "EDGE: refund in a zero-decimal currency"
+  },
+  {
+    "transactionId": "txn_cl_0008",
+    "countryCode": "CL",
+    "productCategory": "books",
+    "customerType": "individual",
+    "amountMinor": 0,
+    "transactionDate": "2026-02-12T12:00:00.000Z",
+    "note": "EDGE: zero amount"
+  },
+  {
+    "transactionId": "txn_cl_0009",
+    "countryCode": "CL",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 23800,
+    "priceIncludesTax": true,
+    "transactionDate": "2026-02-13T12:00:00.000Z",
+    "note": "Tax-inclusive CLP decomposition"
+  },
+  {
+    "transactionId": "txn_pe_0001",
+    "countryCode": "PE",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 45000,
+    "transactionDate": "2026-03-01T12:00:00.000Z",
+    "note": "IGV 18%"
+  },
+  {
+    "transactionId": "txn_pe_0002",
+    "countryCode": "PE",
+    "productCategory": "food",
+    "customerType": "individual",
+    "amountMinor": 2550,
+    "transactionDate": "2026-03-02T12:00:00.000Z",
+    "note": "Unprocessed food exempt"
+  },
+  {
+    "transactionId": "txn_pe_0003",
+    "countryCode": "PE",
+    "productCategory": "books",
+    "customerType": "individual",
+    "amountMinor": 8900,
+    "transactionDate": "2026-03-03T12:00:00.000Z",
+    "note": "Ley del Libro exempt"
+  },
+  {
+    "transactionId": "txn_pe_0004",
+    "countryCode": "PE",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": 189000,
+    "transactionDate": "2026-03-04T12:00:00.000Z",
+    "note": "Digital services IGV 18% (in force from 2024-12-01)"
+  },
+  {
+    "transactionId": "txn_pe_0005",
+    "countryCode": "PE",
+    "productCategory": "digital_services",
+    "customerType": "individual",
+    "amountMinor": 189000,
+    "transactionDate": "2024-06-15T12:00:00.000Z",
+    "note": "EDGE: SAME inputs BEFORE the digital rule existed -> falls back to PE:*:IGV"
+  },
+  {
+    "transactionId": "txn_pe_0006",
+    "countryCode": "PE",
+    "productCategory": "clothing",
+    "customerType": "individual",
+    "amountMinor": 999,
+    "transactionDate": "2026-03-05T12:00:00.000Z",
+    "note": "Sub-10 sol purchase"
+  },
+  {
+    "transactionId": "txn_pe_0007",
+    "countryCode": "PE",
+    "productCategory": "medicine",
+    "customerType": "individual",
+    "amountMinor": 32000,
+    "transactionDate": "2026-03-06T12:00:00.000Z",
+    "note": "Medicine exempt"
+  },
+  {
+    "transactionId": "txn_pe_0008",
+    "countryCode": "PE",
+    "productCategory": "electronics",
+    "customerType": "business",
+    "amountMinor": 1250000,
+    "transactionDate": "2026-03-07T12:00:00.000Z",
+    "note": "Large B2B"
+  },
+  {
+    "transactionId": "txn_pe_0009",
+    "countryCode": "PE",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": -45000,
+    "transactionDate": "2026-03-08T12:00:00.000Z",
+    "note": "EDGE: refund"
+  },
+  {
+    "transactionId": "txn_pe_0010",
+    "countryCode": "PE",
+    "productCategory": "electronics",
+    "customerType": "individual",
+    "amountMinor": 10001,
+    "transactionDate": "2026-03-09T12:00:00.000Z",
+    "note": "Odd cent value: proves integer rounding, 18% of 100.01 = 18.00"
   }
 ]

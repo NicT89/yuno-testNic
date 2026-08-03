@@ -1,0 +1,93 @@
+{
+  "disclaimer": "Illustrative tax data. Not tax advice.",
+  "reportId": "RPT-AR-0000-01-01-9999-12-31",
+  "generatedAt": "2026-08-03T03:18:32.406Z",
+  "countryCode": "AR",
+  "period": {
+    "from": "0000-01-01",
+    "to": "9999-12-31"
+  },
+  "currency": "ARS",
+  "totals": {
+    "transactionsProcessed": 19,
+    "successfulCalculations": 19,
+    "grossBaseAmountMinor": 16752400,
+    "totalTaxCollectedMinor": 3225409,
+    "totalPayableMinor": 19977809,
+    "averageEffectiveRateBps": 1925
+  },
+  "byCategory": [
+    {
+      "productCategory": "clothing",
+      "transactions": 1,
+      "baseAmountMinor": 12000000,
+      "taxAmountMinor": 2520000,
+      "effectiveRateBps": 2100
+    },
+    {
+      "productCategory": "electronics",
+      "transactions": 2,
+      "baseAmountMinor": 1549500,
+      "taxAmountMinor": 325395,
+      "effectiveRateBps": 2100
+    },
+    {
+      "productCategory": "digital_services",
+      "transactions": 11,
+      "baseAmountMinor": 2058000,
+      "taxAmountMinor": 299710,
+      "effectiveRateBps": 1456
+    },
+    {
+      "productCategory": "medicine",
+      "transactions": 1,
+      "baseAmountMinor": 320000,
+      "taxAmountMinor": 33600,
+      "effectiveRateBps": 1050
+    },
+    {
+      "productCategory": "food",
+      "transactions": 2,
+      "baseAmountMinor": 245000,
+      "taxAmountMinor": 25725,
+      "effectiveRateBps": 1050
+    },
+    {
+      "productCategory": "education",
+      "transactions": 1,
+      "baseAmountMinor": 99900,
+      "taxAmountMinor": 20979,
+      "effectiveRateBps": 2100
+    },
+    {
+      "productCategory": "books",
+      "transactions": 1,
+      "baseAmountMinor": 480000,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    }
+  ],
+  "byTaxType": [
+    {
+      "taxType": "IVA",
+      "taxAmountMinor": 3143889,
+      "taxLines": 18
+    },
+    {
+      "taxType": "PAIS",
+      "taxAmountMinor": 81520,
+      "taxLines": 3
+    }
+  ],
+  "edgeCases": {
+    "zeroAmount": 1,
+    "refunds": 1,
+    "exempt": 4,
+    "belowThreshold": 0,
+    "errors": 0,
+    "errorDetail": []
+  },
+  "rulesetVersionsInPeriod": [
+    1
+  ]
+}

@@ -1,149 +1,130 @@
 /**
- * Core domain types for the tax calculation service.
+ * Core domain types. Pure data: no IO, no database, no HTTP, no clock.
  *
- * Design note: amounts are stored as integer minor units (cents) to avoid
- * floating-point rounding errors that are unacceptable in tax computations.
+ * Two conventions run through everything here and are not negotiable:
+ *   - money is an integer count of MINOR UNITS (centavos, and whole pesos for
+ *     CLP, which has no minor unit at all);
+ *   - rates are integer BASIS POINTS, so 19% is 1900 and never 0.19.
+ * See lib/money.ts for why.
  */
 
-/** ISO 3166-1 alpha-2 country code, e.g. "US", "MX", "CO". */
-export type CountryCode = string;
+export const ENGINE_VERSION = "1.0.0";
 
-/** Product / service category used to select the applicable tax rate. */
-export type TaxCategory =
+/** The five jurisdictions this engine is seeded for. */
+export const SUPPORTED_COUNTRIES = ["BR", "CO", "AR", "CL", "PE"] as const;
+export type CountryCode = (typeof SUPPORTED_COUNTRIES)[number];
+
+export type CustomerType = "individual" | "business";
+
+export type Treatment =
   | "standard"
   | "reduced"
-  | "zero_rated"
   | "exempt"
-  | "digital"
-  | "food"
-  | "clothing";
+  | "zero_rated"
+  | "reverse_charge";
 
-/** How the transaction amount relates to tax. */
-export type TaxAmountMode = "exclusive" | "inclusive";
+/** 'gross' taxes the pre-discount amount, 'net' the post-discount amount. */
+export type TaxableBase = "gross" | "net";
+
+export type TaxScope = "national" | "federal" | "state" | "municipal";
 
 /**
- * A versioned tax rule.
+ * One immutable version of one tax rule. Mirrors a row of `tax_rule_versions`.
  *
- * Versioning strategy: each rule has an `id` (stable identity) and a
- * `version` (monotonically increasing integer). Validity is also bounded by
- * `effectiveFrom` / `effectiveTo` so historical calculations can resolve the
- * rule that was in force on the transaction date — critical for audits and
- * amended returns.
+ * `ruleKey` is the stable identity of the rule across its whole life
+ * ("BR:ELECTRONICS:ICMS"); `id` identifies one frozen version of it
+ * ("BR:ELECTRONICS:ICMS@v2"). Audit records point at the `id`, which is what
+ * makes a historical calculation reproducible after a rate change.
  */
-export interface TaxRule {
-  /** Stable rule identity across versions, e.g. "mx-iva-standard". */
+export interface TaxRuleVersion {
   id: string;
-  /** Monotonic version number for this rule id. */
+  ruleKey: string;
   version: number;
-  country: CountryCode;
-  /** Optional subdivision (US state, MX state, etc.). Null = country-wide. */
-  region: string | null;
-  category: TaxCategory;
-  /** Tax rate as a decimal fraction, e.g. 0.16 for 16% IVA. */
-  rate: number;
-  /** Human-readable tax name shown on invoices / reports. */
-  taxName: string;
-  /** Inclusive start date (ISO 8601 date). */
-  effectiveFrom: string;
-  /** Exclusive end date, or null if still active. */
-  effectiveTo: string | null;
-  /** Short rationale for auditors (why this rate applies). */
-  notes?: string;
+  countryCode: string;
+  /** '*' = country-wide default. */
+  productCategory: string;
+  /** '*' | 'individual' | 'business'. */
+  customerType: string;
+  taxType: string;
+  taxScope: TaxScope;
+  rateBps: number;
+  treatment: Treatment;
+  /** The rule does not apply at all below this amount. */
+  thresholdMinor: number;
+  taxableBase: TaxableBase;
+  /** Stack order when several taxes apply to one sale. Lower runs first. */
+  priority: number;
+  /** Levy on (base + tax accumulated so far) rather than on the base alone. */
+  compoundOnPrevious: boolean;
+
+  /** VALID TIME: when this rule was the law. Selected by the transaction date. */
+  validFrom: string;
+  validTo: string | null;
+
+  /** SYSTEM TIME: when we believed it. Selected by an as-of instant. */
+  recordedAt: string;
+  supersededAt: string | null;
+
+  rulesetVersion: number;
+  legalReference: string | null;
+  notes: string | null;
 }
 
-/** Input line used when calculating tax for a single purchase. */
-export interface TaxCalculationRequest {
-  country: CountryCode;
-  region?: string | null;
-  category: TaxCategory;
-  /** Amount in minor units (cents). */
-  amount: number;
-  /** Whether `amount` already includes tax. Defaults to "exclusive". */
-  amountMode?: TaxAmountMode;
-  /** Transaction date used for rule version resolution. Defaults to today. */
-  transactionDate?: string;
-  currency?: string;
-}
-
-/** Breakdown returned by the calculation engine. */
-export interface TaxCalculationResult {
-  country: CountryCode;
-  region: string | null;
-  category: TaxCategory;
+export interface CalculationInput {
+  /** May be zero (no taxable event) or negative (refund / credit note). */
+  amountMinor: number;
+  discountMinor: number;
   currency: string;
-  amountMode: TaxAmountMode;
-  /** Net (pre-tax) amount in minor units. */
-  netAmount: number;
-  /** Tax amount in minor units. */
-  taxAmount: number;
-  /** Gross (net + tax) amount in minor units. */
-  grossAmount: number;
-  /** Applied rate as a decimal fraction. */
-  rate: number;
-  taxName: string;
-  /** The specific rule version that was applied. */
-  appliedRule: {
-    id: string;
-    version: number;
-    effectiveFrom: string;
-    effectiveTo: string | null;
-  };
-  /** True when a zero or exempt rule matched (taxAmount will be 0). */
-  exempt: boolean;
-}
-
-/** A recorded commerce transaction used for batch reporting. */
-export interface Transaction {
-  id: string;
-  country: CountryCode;
-  region: string | null;
-  category: TaxCategory;
-  /** Transaction amount in minor units. */
-  amount: number;
-  amountMode: TaxAmountMode;
-  currency: string;
-  /** ISO 8601 date of the transaction. */
+  countryCode: string;
+  productCategory: string;
+  customerType: CustomerType;
+  /** ISO-8601. Drives VALID-TIME rule selection. */
   transactionDate: string;
-  description: string;
+  priceIncludesTax: boolean;
 }
 
-/** A transaction plus its calculated tax result. */
-export interface TaxedTransaction {
-  transaction: Transaction;
-  tax: TaxCalculationResult;
+/** One tax applied to one transaction. Several lines = tax stacking. */
+export interface TaxLine {
+  ruleVersionId: string;
+  ruleKey: string;
+  ruleVersion: number;
+  taxType: string;
+  taxScope: string;
+  treatment: Treatment;
+  rateBps: number;
+  /** Human-readable form of rateBps, e.g. "19.00%". */
+  ratePercent: string;
+  /** What this specific tax was levied on. */
+  taxableAmountMinor: number;
+  taxAmountMinor: number;
+  compoundOnPrevious: boolean;
+  /** Plain-English "why this rule fired", for the auditor. */
+  explanation: string;
 }
 
-/** Aggregated compliance report for one country. */
-export interface ComplianceReport {
-  generatedAt: string;
-  country: CountryCode;
+export interface CalculationResult {
+  status: "calculated" | "exempt" | "refund" | "zero_amount";
   currency: string;
-  period: {
-    from: string;
-    to: string;
+  currencyExponent: number;
+
+  /** Amount as submitted, before discount. */
+  grossAmountMinor: number;
+  discountMinor: number;
+  /** Amount tax was actually computed on. */
+  baseAmountMinor: number;
+  taxAmountMinor: number;
+  totalAmountMinor: number;
+  effectiveRateBps: number;
+
+  taxLines: TaxLine[];
+  rulesetVersion: number;
+  engineVersion: string;
+
+  /** Human-readable trace of every decision the engine made. */
+  breakdown: {
+    summary: string;
+    steps: string[];
+    appliedRuleVersionIds: string[];
+    notes: string[];
   };
-  summary: {
-    transactionCount: number;
-    totalNet: number;
-    totalTax: number;
-    totalGross: number;
-  };
-  /** Tax totals rolled up by category. */
-  byCategory: Array<{
-    category: TaxCategory;
-    transactionCount: number;
-    totalNet: number;
-    totalTax: number;
-    rate: number | null;
-  }>;
-  /** Tax totals rolled up by applied rule version (audit trail). */
-  byRuleVersion: Array<{
-    ruleId: string;
-    version: number;
-    taxName: string;
-    rate: number;
-    transactionCount: number;
-    totalTax: number;
-  }>;
-  transactions: TaxedTransaction[];
 }
