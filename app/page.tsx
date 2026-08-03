@@ -1,66 +1,79 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main>
+      <p className="brand">Yuno Tax Service</p>
+      <h1>Tax calculation API</h1>
+      <p className="lede">
+        Versioned tax rules in SQLite, deterministic calculation (exclusive &amp;
+        inclusive), and country-level compliance reports. Next.js API on Vercel.
+      </p>
+
+      <div className="links">
+        <a className="primary" href="/api/health">
+          Health check
+        </a>
+        <a href="/api/tax/rules?country=MX">MX tax rules</a>
+        <a href="/api/tax/report?country=MX&format=text">MX compliance report</a>
+        <a href="/api/transactions">Sample transactions</a>
+      </div>
+
+      <div className="note">
+        Amounts are integer minor units (cents). MXN 1,000.00 ={" "}
+        <code>100000</code>. See the README for full setup and architecture notes.
+      </div>
+
+      <h2>API endpoints</h2>
+
+      <h3>POST /api/tax/calculate</h3>
+      <p>Calculate tax for a single line item.</p>
+      <pre>{`curl -s -X POST https://YOUR_DEPLOY_URL/api/tax/calculate \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "country": "MX",
+    "category": "standard",
+    "amount": 100000,
+    "amountMode": "exclusive",
+    "currency": "MXN",
+    "transactionDate": "2025-03-15"
+  }'`}</pre>
+
+      <h3>GET /api/tax/rules</h3>
+      <p>
+        List versioned rules. Filter with <code>?country=MX</code> or view history
+        with <code>?id=mx-iva-digital</code>.
+      </p>
+      <pre>{`curl -s "https://YOUR_DEPLOY_URL/api/tax/rules?country=MX"`}</pre>
+
+      <h3>GET /api/tax/report</h3>
+      <p>
+        Aggregated compliance report. Formats: <code>json</code> (default),{" "}
+        <code>text</code>, <code>csv</code>.
+      </p>
+      <pre>{`curl -s "https://YOUR_DEPLOY_URL/api/tax/report?country=MX&format=text"`}</pre>
+
+      <h3>GET /api/transactions</h3>
+      <p>Sample transactions used for development and reporting.</p>
+      <pre>{`curl -s "https://YOUR_DEPLOY_URL/api/transactions?country=MX"`}</pre>
+
+      <h2>Supported countries (fixtures)</h2>
+      <ul>
+        <li>
+          <strong>MX</strong> — IVA 16% standard, zero-rated food, digital services
+          (versioned), exempt
+        </li>
+        <li>
+          <strong>US</strong> — CA / NY regional sales tax + category exemptions
+        </li>
+        <li>
+          <strong>CO</strong> — IVA 19% standard, 5% reduced, exempt
+        </li>
+      </ul>
+
+      <footer>
+        Source, README, and architecture decisions are in the GitHub repository.
+        Rates are illustrative simplifications for this take-home — not production
+        tax advice.
+      </footer>
+    </main>
   );
 }

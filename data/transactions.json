@@ -1,0 +1,145 @@
+[
+  {
+    "id": "txn-mx-001",
+    "country": "MX",
+    "region": null,
+    "category": "standard",
+    "amount": 100000,
+    "amountMode": "exclusive",
+    "currency": "MXN",
+    "transactionDate": "2025-03-15",
+    "description": "Electronics purchase — MXN 1,000.00 exclusive of IVA"
+  },
+  {
+    "id": "txn-mx-002",
+    "country": "MX",
+    "region": null,
+    "category": "food",
+    "amount": 25000,
+    "amountMode": "exclusive",
+    "currency": "MXN",
+    "transactionDate": "2025-03-16",
+    "description": "Grocery staples — zero-rated food"
+  },
+  {
+    "id": "txn-mx-003",
+    "country": "MX",
+    "region": null,
+    "category": "digital",
+    "amount": 11600,
+    "amountMode": "inclusive",
+    "currency": "MXN",
+    "transactionDate": "2025-06-01",
+    "description": "SaaS subscription billed tax-inclusive (MXN 116.00)"
+  },
+  {
+    "id": "txn-mx-004",
+    "country": "MX",
+    "region": null,
+    "category": "digital",
+    "amount": 50000,
+    "amountMode": "exclusive",
+    "currency": "MXN",
+    "transactionDate": "2023-08-10",
+    "description": "Digital download under digital rule v1 (pre-2025)"
+  },
+  {
+    "id": "txn-mx-005",
+    "country": "MX",
+    "region": null,
+    "category": "exempt",
+    "amount": 80000,
+    "amountMode": "exclusive",
+    "currency": "MXN",
+    "transactionDate": "2025-04-02",
+    "description": "Exempt educational service"
+  },
+  {
+    "id": "txn-mx-006",
+    "country": "MX",
+    "region": null,
+    "category": "standard",
+    "amount": 348000,
+    "amountMode": "inclusive",
+    "currency": "MXN",
+    "transactionDate": "2025-05-20",
+    "description": "Furniture set billed inclusive of IVA (MXN 3,480.00)"
+  },
+  {
+    "id": "txn-us-001",
+    "country": "US",
+    "region": "CA",
+    "category": "standard",
+    "amount": 20000,
+    "amountMode": "exclusive",
+    "currency": "USD",
+    "transactionDate": "2025-02-01",
+    "description": "Retail purchase in California — USD 200.00"
+  },
+  {
+    "id": "txn-us-002",
+    "country": "US",
+    "region": "CA",
+    "category": "food",
+    "amount": 4500,
+    "amountMode": "exclusive",
+    "currency": "USD",
+    "transactionDate": "2025-02-01",
+    "description": "Grocery food exempt in CA"
+  },
+  {
+    "id": "txn-us-003",
+    "country": "US",
+    "region": "NY",
+    "category": "standard",
+    "amount": 15000,
+    "amountMode": "exclusive",
+    "currency": "USD",
+    "transactionDate": "2025-01-12",
+    "description": "NY state sales tax only — USD 150.00"
+  },
+  {
+    "id": "txn-us-004",
+    "country": "US",
+    "region": "NY",
+    "category": "clothing",
+    "amount": 7500,
+    "amountMode": "exclusive",
+    "currency": "USD",
+    "transactionDate": "2025-01-12",
+    "description": "Clothing under NY exemption simplification"
+  },
+  {
+    "id": "txn-co-001",
+    "country": "CO",
+    "region": null,
+    "category": "standard",
+    "amount": 119000,
+    "amountMode": "inclusive",
+    "currency": "COP",
+    "transactionDate": "2025-07-01",
+    "description": "Standard-rated goods in Colombia (COP 1,190.00 inclusive)"
+  },
+  {
+    "id": "txn-co-002",
+    "country": "CO",
+    "region": null,
+    "category": "reduced",
+    "amount": 100000,
+    "amountMode": "exclusive",
+    "currency": "COP",
+    "transactionDate": "2025-07-02",
+    "description": "Reduced-rate goods — COP 1,000.00 exclusive"
+  },
+  {
+    "id": "txn-co-003",
+    "country": "CO",
+    "region": null,
+    "category": "exempt",
+    "amount": 50000,
+    "amountMode": "exclusive",
+    "currency": "COP",
+    "transactionDate": "2025-07-03",
+    "description": "Exempt Colombian service"
+  }
+]
