@@ -9,7 +9,7 @@
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
-| cursor | `README.md`, `data/tax-rules.json`, `scripts/seed-db.ts`, `lib/compliance.ts`, `app/api/health/route.ts`, `app/page.tsx`, `vercel.json`, `audit/findings/FINDINGS.md`, `audit/log/NNNN-cursor-*.md`, `docs/10-SUBMISSION-NOTES.md` | docs/11 disclaimer + deliverable URL | 04:20Z |
+| cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
 | cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
