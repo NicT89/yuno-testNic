@@ -1,13 +1,14 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-03T05:15Z by `cursor`
-**Phase:** Submit-ready — final Cursor audit closed; F-001…F-027 RESOLVED
+**Last updated:** 2026-08-03T14:12Z by `cursor`
+**Phase:** Rubric audit pass 001 in progress; F-028…F-032 under verification
 **Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
 ## File ownership (claim before editing, release when done)
 
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
+| cursor | `lib/calculator.ts`, `lib/validation.ts`, `lib/tax-service.ts`, `app/api/tax/calculate/route.ts`, `scripts/schema.sql`, `scripts/test-tax.ts`, `scripts/demo.ts`, `data/tax-rules.json`, `audit/{ACTIVE.md,AGENT-FEEDBACK.md,findings/FINDINGS.md,scorecard/**,log/0017-cursor-rubric-pass-001.md}` | rubric audit pass 001, F-028…F-032 | 14:12Z |
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
 | cursor | — **CLAIM RELEASED 05:15Z** (final audit + F-027). Artifacts: `audit/findings/CURSOR-FINAL-AUDIT.md`, log `0016`, reference banner, `_archive` removed | final audit + F-027 | done |
 | cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
