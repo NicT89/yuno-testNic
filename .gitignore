@@ -53,3 +53,6 @@ data/*.db-wal
 # Local agent config
 .claude/
 data/*.db-shm
+
+# Scaffolding noise (F-027); keep local if needed, never ship
+docs/_archive/

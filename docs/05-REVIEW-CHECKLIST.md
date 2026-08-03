@@ -43,4 +43,5 @@ Audit whatever lands against this list. Report findings as
 - [ ] `ARCHITECTURE.md`, 200-400 words
 - [ ] `data/tax-rules.json` with 15+ distinct rules
 - [ ] `data/transactions.json` with 50+ transactions including edge cases
-- [ ] A generated compliance report committed at `out/compliance-report-BR.json`
+- [ ] A generated compliance report committed at `reports/compliance-report-BR.json`
+      (never `out/` — that path is gitignored by Next.js)
