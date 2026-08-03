@@ -87,7 +87,7 @@ each country.
 
 ```bash
 npm run dev    # API on http://localhost:3000
-npm test       # 34 accuracy, versioning and immutability checks
+npm test       # 35 accuracy, versioning and immutability checks
 ```
 
 Requires **Node.js 22+** for the built-in `node:sqlite`. `db:seed` runs
