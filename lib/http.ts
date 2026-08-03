@@ -4,20 +4,30 @@ export function jsonOk<T>(data: T, init?: ResponseInit) {
   return NextResponse.json(data, init);
 }
 
-export function jsonError(status: number, error: string, details?: unknown) {
+/**
+ * Single error envelope for the whole API: `{ error: { code, message } }`.
+ * A machine-readable `code` matters more than the prose here — an integrator
+ * branches on NO_APPLICABLE_RULE, not on an English sentence.
+ */
+export function jsonError(
+  status: number,
+  code: string,
+  message: string,
+  details?: unknown,
+) {
   return NextResponse.json(
-    { error, ...(details !== undefined ? { details } : {}) },
+    { error: { code, message, ...(details !== undefined ? { details } : {}) } },
     { status },
   );
 }
 
-/** Coerce a query/body value to a non-negative integer minor-unit amount. */
-export function parseAmount(value: unknown): number | null {
-  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
-    return value;
+/** Parse a JSON request body, or return null when it is not valid JSON. */
+export async function readJsonBody(request: Request): Promise<Record<string, unknown> | null> {
+  try {
+    const body = await request.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) return null;
+    return body as Record<string, unknown>;
+  } catch {
+    return null;
   }
-  if (typeof value === "string" && /^\d+$/.test(value)) {
-    return Number(value);
-  }
-  return null;
 }

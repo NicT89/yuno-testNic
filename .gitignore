@@ -49,3 +49,7 @@ next-env.d.ts
 data/*.db
 data/*.db-journal
 data/*.db-wal
+
+# Local agent config
+.claude/
+data/*.db-shm

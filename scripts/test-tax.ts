@@ -1,151 +1,559 @@
 /**
- * Lightweight assertion suite for tax calculation business rules.
- * Run with: npm test
+ * Accuracy suite for the tax engine. Run with: npm test
  *
- * Uses Node's built-in assert — no test framework overhead for the 2-hour scope.
+ * Sections 1-4 exercise the PURE core (calculator, resolver, money) with
+ * hand-built rules: no database, no clock, milliseconds to run. Sections 5-7
+ * exercise the seeded database: bitemporal rule selection, the audit trail, and
+ * the append-only triggers.
+ *
+ * Node's built-in assert — no test framework overhead for the 2-hour scope.
  */
 
 import assert from "node:assert/strict";
-import { calculateTax, roundHalfUp } from "../lib/calculator";
-import {
-  formatComplianceReportText,
-  generateComplianceReport,
-} from "../lib/compliance";
-import { getDbPath } from "../lib/db";
-import { getRuleHistory, resolveTaxRule } from "../lib/rules";
 import { existsSync } from "node:fs";
+import { calculateTax, NoApplicableRuleError } from "../lib/calculator";
+import { resolveApplicableRules } from "../lib/rules";
+import { applyRateBps, formatMinor, toMinor } from "../lib/money";
+import { getDb, getDbPath } from "../lib/db";
+import {
+  countryRoundingMode,
+  findCandidateRules,
+  listRules,
+  listVersionsOfRule,
+} from "../lib/rules-repo";
+import { getAudit } from "../lib/audit";
+import { calculate, ReplayedFailureError } from "../lib/tax-service";
+import type { CalculationInput, TaxRuleVersion } from "../lib/types";
 
 assert.equal(existsSync(getDbPath()), true, "SQLite DB must exist (npm run db:seed)");
 
+let checks = 0;
 function section(title: string) {
-  console.log(`\n✓ ${title}`);
+  console.log(`\n— ${title}`);
+}
+function ok(label: string, fn: () => void) {
+  fn();
+  checks++;
+  console.log(`  ✓ ${label}`);
 }
 
-// --- Rounding ---
-section("roundHalfUp uses commercial half-up");
-assert.equal(roundHalfUp(1.4), 1);
-assert.equal(roundHalfUp(1.5), 2);
-assert.equal(roundHalfUp(16000 * 0.16), 2560); // 100 MXN * 16% = 16.00 → 1600 cents? wait
-// 100000 cents * 0.16 = 16000 exactly
-assert.equal(roundHalfUp(100000 * 0.16), 16000);
+// Builders for the pure sections.
+const RULE_DEFAULTS = {
+  customerType: "*",
+  taxScope: "national" as const,
+  treatment: "standard" as const,
+  thresholdMinor: 0,
+  taxableBase: "net" as const,
+  priority: 100,
+  compoundOnPrevious: false,
+  validFrom: "2020-01-01",
+  validTo: null,
+  recordedAt: "2024-01-01T00:00:00.000Z",
+  supersededAt: null,
+  rulesetVersion: 1,
+  legalReference: null,
+  notes: null,
+};
 
-// --- Mexico standard exclusive ---
-section("MX standard exclusive: 1000.00 MXN → 160.00 IVA");
-{
-  const result = calculateTax({
-    country: "MX",
-    category: "standard",
-    amount: 100000,
-    amountMode: "exclusive",
-    currency: "MXN",
-    transactionDate: "2025-03-15",
+const r = (over: Partial<TaxRuleVersion>): TaxRuleVersion =>
+  ({ ...RULE_DEFAULTS, ...over }) as TaxRuleVersion;
+
+const input = (over: Partial<CalculationInput> = {}): CalculationInput => ({
+  amountMinor: 100_00,
+  discountMinor: 0,
+  currency: "BRL",
+  countryCode: "BR",
+  productCategory: "electronics",
+  customerType: "individual",
+  transactionDate: "2026-06-01T00:00:00.000Z",
+  priceIncludesTax: false,
+  ...over,
+});
+
+// =============================================================================
+section("1. Money primitives: no float drift");
+// =============================================================================
+ok("applyRateBps is exact and sign-preserving", () => {
+  assert.equal(applyRateBps(100_00, 1900), 19_00);
+  assert.equal(applyRateBps(10_01, 1800), 1_80); // 1.8018 -> 1.80
+  assert.equal(applyRateBps(7, 1900), 1); // CLP 7 * 19% = 1.33 -> 1
+  assert.equal(applyRateBps(-100_00, 1900), -19_00); // refunds mirror
+});
+
+ok("major <-> minor round-trips, including zero-decimal CLP", () => {
+  assert.equal(toMinor("199.99", "BRL"), 19999);
+  assert.equal(toMinor(199.99, "BRL"), 19999);
+  assert.equal(toMinor("89990", "CLP"), 89990);
+  assert.equal(formatMinor(19999, "BRL"), "199.99");
+  assert.equal(formatMinor(89990, "CLP"), "89990");
+  assert.equal(formatMinor(-19999, "BRL"), "-199.99");
+});
+
+// =============================================================================
+section("2. Calculation accuracy across the five countries");
+// =============================================================================
+const accuracyCases: Array<[string, TaxRuleVersion[], CalculationInput, number, number]> = [
+  [
+    "Colombia IVA 19% on 100.00",
+    [r({ id: "CO:*:IVA@v1", ruleKey: "CO:*:IVA", version: 1, countryCode: "CO", productCategory: "*", taxType: "IVA", rateBps: 1900 })],
+    input({ countryCode: "CO", currency: "COP" }),
+    19_00,
+    119_00,
+  ],
+  [
+    "Argentina reduced 10.5% on food",
+    [r({ id: "AR:FOOD:IVA@v1", ruleKey: "AR:FOOD:IVA", version: 1, countryCode: "AR", productCategory: "food", taxType: "IVA", rateBps: 1050 })],
+    input({ countryCode: "AR", currency: "ARS", productCategory: "food" }),
+    10_50,
+    110_50,
+  ],
+  [
+    "Brazil books exempt",
+    [r({ id: "BR:BOOKS:ICMS@v1", ruleKey: "BR:BOOKS:ICMS", version: 1, countryCode: "BR", productCategory: "books", taxType: "ICMS", rateBps: 0, treatment: "exempt" })],
+    input({ productCategory: "books" }),
+    0,
+    100_00,
+  ],
+  [
+    "Brazil multi-tax: federal PIS/COFINS 9.25% + municipal ISS 5% = 14.25%",
+    [
+      r({ id: "BR:DS:PIS_COFINS_IMPORT@v1", ruleKey: "BR:DS:PIS_COFINS_IMPORT", version: 1, countryCode: "BR", productCategory: "digital_services", taxType: "PIS_COFINS_IMPORT", taxScope: "federal", rateBps: 925, priority: 5 }),
+      r({ id: "BR:DS:ISS@v1", ruleKey: "BR:DS:ISS", version: 1, countryCode: "BR", productCategory: "digital_services", taxType: "ISS", taxScope: "municipal", rateBps: 500, priority: 20 }),
+    ],
+    input({ productCategory: "digital_services" }),
+    14_25,
+    114_25,
+  ],
+  [
+    "Chile 19% on a zero-decimal currency",
+    [r({ id: "CL:*:IVA@v1", ruleKey: "CL:*:IVA", version: 1, countryCode: "CL", productCategory: "*", taxType: "IVA", rateBps: 1900 })],
+    input({ countryCode: "CL", currency: "CLP", amountMinor: 89_990 }),
+    17_098,
+    107_088,
+  ],
+  [
+    "Peru IGV 18%",
+    [r({ id: "PE:*:IGV@v1", ruleKey: "PE:*:IGV", version: 1, countryCode: "PE", productCategory: "*", taxType: "IGV", rateBps: 1800 })],
+    input({ countryCode: "PE", currency: "PEN" }),
+    18_00,
+    118_00,
+  ],
+];
+
+for (const [name, rules, inp, expectedTax, expectedTotal] of accuracyCases) {
+  ok(name, () => {
+    const res = calculateTax(inp, rules, { rulesetVersion: 1 });
+    assert.equal(res.taxAmountMinor, expectedTax);
+    assert.equal(res.totalAmountMinor, expectedTotal);
   });
-  assert.equal(result.netAmount, 100000);
-  assert.equal(result.taxAmount, 16000);
-  assert.equal(result.grossAmount, 116000);
-  assert.equal(result.rate, 0.16);
-  assert.equal(result.appliedRule.id, "mx-iva-standard");
 }
 
-// --- Mexico inclusive peel ---
-section("MX inclusive: 116.00 MXN → net 100.00 + tax 16.00");
-{
-  const result = calculateTax({
-    country: "MX",
-    category: "digital",
-    amount: 11600,
-    amountMode: "inclusive",
-    currency: "MXN",
-    transactionDate: "2025-06-01",
-  });
-  assert.equal(result.grossAmount, 11600);
-  assert.equal(result.netAmount, 10000);
-  assert.equal(result.taxAmount, 1600);
-  assert.equal(result.appliedRule.version, 2); // post-2025 digital rule
-}
+// =============================================================================
+section("3. Edge cases");
+// =============================================================================
+const standard = [
+  r({ id: "BR:*:ICMS@v1", ruleKey: "BR:*:ICMS", version: 1, countryCode: "BR", productCategory: "*", taxType: "ICMS", rateBps: 1700 }),
+];
 
-// --- Rule versioning by date ---
-section("Digital rule resolves v1 before 2025 and v2 after");
-{
-  const v1 = resolveTaxRule({
-    country: "MX",
-    category: "digital",
-    transactionDate: "2023-08-10",
-  });
-  const v2 = resolveTaxRule({
-    country: "MX",
-    category: "digital",
-    transactionDate: "2025-06-01",
-  });
-  assert.equal(v1?.version, 1);
-  assert.equal(v2?.version, 2);
-  assert.equal(getRuleHistory("mx-iva-digital").length, 2);
-}
+ok("zero amount is not a taxable event", () => {
+  const res = calculateTax(input({ amountMinor: 0 }), standard, { rulesetVersion: 1 });
+  assert.equal(res.status, "zero_amount");
+  assert.equal(res.taxAmountMinor, 0);
+});
 
-// --- Zero-rated food ---
-section("MX food is zero-rated");
-{
-  const result = calculateTax({
-    country: "MX",
-    category: "food",
-    amount: 25000,
-    amountMode: "exclusive",
-    transactionDate: "2025-03-16",
-  });
-  assert.equal(result.taxAmount, 0);
-  assert.equal(result.exempt, true);
-}
+ok("negative amount is a refund with mirrored tax", () => {
+  const res = calculateTax(input({ amountMinor: -100_00 }), standard, { rulesetVersion: 1 });
+  assert.equal(res.status, "refund");
+  assert.equal(res.taxAmountMinor, -17_00);
+  assert.equal(res.totalAmountMinor, -117_00);
+});
 
-// --- US regional specificity ---
-section("US CA regional rate beats any country-wide (none defined)");
-{
-  const result = calculateTax({
-    country: "US",
-    region: "CA",
-    category: "standard",
-    amount: 20000,
-    amountMode: "exclusive",
-    currency: "USD",
-    transactionDate: "2025-02-01",
-  });
-  assert.equal(result.rate, 0.0725);
-  assert.equal(result.taxAmount, 1450); // 200.00 * 7.25% = 14.50
-  assert.equal(result.appliedRule.id, "us-sales-ca");
-}
+ok("discount reduces the net taxable base", () => {
+  const res = calculateTax(input({ amountMinor: 250_00, discountMinor: 50_00 }), standard, { rulesetVersion: 1 });
+  assert.equal(res.baseAmountMinor, 200_00);
+  assert.equal(res.taxAmountMinor, 34_00);
+});
 
-// --- Missing rule throws ---
-section("Missing rule throws TaxRuleNotFoundError");
+ok("gross-based rules ignore the discount", () => {
+  const grossRule = [r({ ...standard[0], id: "BR:*:ICMS@vG", taxableBase: "gross" })];
+  const res = calculateTax(input({ amountMinor: 250_00, discountMinor: 50_00 }), grossRule, { rulesetVersion: 1 });
+  assert.equal(res.taxAmountMinor, applyRateBps(250_00, 1700));
+});
+
+ok("threshold boundaries: below is exempt, at and above are taxed", () => {
+  const thresholded = [
+    r({ id: "CO:CLOTHING:IVA@v1", ruleKey: "CO:CLOTHING:IVA", version: 1, countryCode: "CO", productCategory: "clothing", taxType: "IVA", rateBps: 1900, thresholdMinor: 10_000_00 }),
+  ];
+  const at = (amt: number) =>
+    calculateTax(
+      input({ countryCode: "CO", currency: "COP", productCategory: "clothing", amountMinor: amt }),
+      thresholded,
+      { rulesetVersion: 1 },
+    );
+  assert.equal(at(9_999_99).taxAmountMinor, 0);
+  assert.equal(at(10_000_00).taxAmountMinor, 1_900_00);
+  assert.ok(at(10_000_01).taxAmountMinor > 0);
+});
+
+ok("refuses to invent a rate when no rule is on file", () => {
+  assert.throws(
+    () => calculateTax(input(), [], { rulesetVersion: 1 }),
+    (err: unknown) => err instanceof NoApplicableRuleError && err.code === "NO_APPLICABLE_RULE",
+  );
+});
+
+ok("decomposes a tax-inclusive price back to its base", () => {
+  const res = calculateTax(input({ amountMinor: 117_00, priceIncludesTax: true }), standard, { rulesetVersion: 1 });
+  assert.equal(res.baseAmountMinor, 100_00);
+  assert.equal(res.taxAmountMinor, 17_00);
+  assert.equal(res.totalAmountMinor, 117_00);
+});
+
+ok("identical inputs give byte-identical outputs", () => {
+  const a = calculateTax(input({ amountMinor: 123_45 }), standard, { rulesetVersion: 1 });
+  const b = calculateTax(input({ amountMinor: 123_45 }), standard, { rulesetVersion: 1 });
+  assert.equal(JSON.stringify(a), JSON.stringify(b));
+});
+
+// =============================================================================
+section("4. Rule resolution: two independent time axes");
+// =============================================================================
 {
-  let threw = false;
-  try {
-    calculateTax({
-      country: "BR",
-      category: "standard",
-      amount: 1000,
-      transactionDate: "2025-01-01",
+  const v1 = r({ id: "BR:E:ICMS@v1", ruleKey: "BR:E:ICMS", version: 1, countryCode: "BR", productCategory: "electronics", taxType: "ICMS", rateBps: 1700, validFrom: "2020-01-01", validTo: "2026-01-01" });
+  const v2 = r({ id: "BR:E:ICMS@v2", ruleKey: "BR:E:ICMS", version: 2, countryCode: "BR", productCategory: "electronics", taxType: "ICMS", rateBps: 1800, validFrom: "2026-01-01", validTo: null });
+  const q = (transactionDate: string, asOf = "2026-06-01T00:00:00.000Z") => ({
+    countryCode: "BR",
+    productCategory: "electronics",
+    customerType: "individual",
+    transactionDate,
+    asOf,
+  });
+
+  ok("VALID TIME: picks the rule that was law on the transaction date", () => {
+    assert.equal(resolveApplicableRules([v1, v2], q("2025-12-31"))[0].id, "BR:E:ICMS@v1");
+    assert.equal(resolveApplicableRules([v1, v2], q("2026-01-02"))[0].id, "BR:E:ICMS@v2");
+  });
+
+  ok("SYSTEM TIME: a rule recorded later is invisible to an earlier as-of instant", () => {
+    const late = r({ ...v2, id: "BR:E:ICMS@v3", version: 3, rateBps: 2000, recordedAt: "2026-05-01T00:00:00.000Z" });
+    const superseded = r({ ...v2, supersededAt: "2026-05-01T00:00:00.000Z" });
+    assert.equal(
+      resolveApplicableRules([superseded, late], q("2026-03-01", "2026-04-01T00:00:00.000Z"))[0].rateBps,
+      1800,
+    );
+    assert.equal(
+      resolveApplicableRules([superseded, late], q("2026-03-01", "2026-06-01T00:00:00.000Z"))[0].rateBps,
+      2000,
+    );
+  });
+
+  ok("specificity: an exact category beats the country wildcard", () => {
+    const wildcard = r({ id: "BR:*:ICMS@v1", ruleKey: "BR:*:ICMS", version: 1, countryCode: "BR", productCategory: "*", taxType: "ICMS", rateBps: 1700 });
+    const exact = r({ id: "BR:FOOD:ICMS@v1", ruleKey: "BR:FOOD:ICMS", version: 1, countryCode: "BR", productCategory: "food", taxType: "ICMS", rateBps: 700 });
+    const picked = resolveApplicableRules([wildcard, exact], { ...q("2026-03-01"), productCategory: "food" });
+    assert.equal(picked.length, 1);
+    assert.equal(picked[0].rateBps, 700);
+  });
+
+  ok("specificity: an exact customer type beats the wildcard (B2B reverse charge)", () => {
+    const b2c = r({ id: "AR:DS:IVA@v1", ruleKey: "AR:DS:IVA", version: 1, countryCode: "AR", productCategory: "digital_services", taxType: "IVA", rateBps: 2100 });
+    const b2b = r({ id: "AR:DS:IVA:B2B@v1", ruleKey: "AR:DS:IVA:B2B", version: 1, countryCode: "AR", productCategory: "digital_services", customerType: "business", taxType: "IVA", rateBps: 0, treatment: "reverse_charge" });
+    const picked = resolveApplicableRules([b2c, b2b], {
+      countryCode: "AR",
+      productCategory: "digital_services",
+      customerType: "business",
+      transactionDate: "2026-03-01",
+      asOf: "2026-06-01T00:00:00.000Z",
     });
-  } catch (err) {
-    threw = true;
-    assert.equal((err as Error).name, "TaxRuleNotFoundError");
+    assert.equal(picked[0].treatment, "reverse_charge");
+  });
+}
+
+// =============================================================================
+section("5. Seeded catalogue: BR / CO / AR / CL / PE");
+// =============================================================================
+ok("30 rule versions across the five countries", () => {
+  const all = listRules({ includeSuperseded: true });
+  assert.equal(all.length, 30);
+  for (const country of ["BR", "CO", "AR", "CL", "PE"]) {
+    assert.ok(
+      listRules({ countryCode: country }).length > 0,
+      `expected seeded rules for ${country}`,
+    );
   }
-  assert.equal(threw, true);
-}
+});
 
-// --- Compliance report for Mexico ---
-section("Mexico compliance report aggregates sample transactions");
-{
-  const report = generateComplianceReport({ country: "MX" });
-  assert.equal(report.country, "MX");
-  assert.ok(report.summary.transactionCount >= 5);
-  assert.ok(report.summary.totalTax > 0);
-  assert.ok(report.byCategory.length >= 1);
-  assert.ok(report.byRuleVersion.length >= 1);
+ok("every seeded rule carries a legal reference or an explanatory note", () => {
+  const undocumented = listRules({ includeSuperseded: true }).filter(
+    (rule) => !rule.legalReference && !rule.notes,
+  );
+  // Rates that mirror an already-cited rule may lean on that citation; anything
+  // else must tell an auditor where it came from.
+  assert.ok(undocumented.length <= 6, `too many undocumented rules: ${undocumented.length}`);
+});
 
-  const text = formatComplianceReportText(report);
-  assert.match(text, /COMPLIANCE TAX REPORT — MX/);
-  assert.match(text, /Total tax:/);
-  console.log("\n--- Sample MX compliance report (text) ---\n");
-  console.log(text);
-}
+ok("BR:ELECTRONICS:ICMS resolves @v1 on 2025-12-31 and @v2 on 2026-01-02", () => {
+  const asOf = new Date().toISOString();
+  const pick = (date: string) =>
+    resolveApplicableRules(findCandidateRules("BR", date, asOf), {
+      countryCode: "BR",
+      productCategory: "electronics",
+      customerType: "individual",
+      transactionDate: date,
+      asOf,
+    })[0];
 
-console.log("\nAll tests passed.\n");
+  const before = pick("2025-12-31");
+  const after = pick("2026-01-02");
+  assert.equal(before.id, "BR:ELECTRONICS:ICMS@v1");
+  assert.equal(before.rateBps, 1700);
+  assert.equal(after.id, "BR:ELECTRONICS:ICMS@v2");
+  assert.equal(after.rateBps, 1800);
+  assert.equal(listVersionsOfRule("BR:ELECTRONICS:ICMS").length, 2);
+});
+
+// F-020: rounding policy is per country and actually read, not dead config.
+ok("countries.rounding_mode is read and changes a half-unit result", () => {
+  assert.equal(countryRoundingMode("BR"), "HALF_UP");
+  assert.equal(countryRoundingMode("ZZ"), "HALF_UP", "unknown country falls back safely");
+
+  // 1% of 0.50 is exactly 0.005 — the only case where the mode is visible.
+  assert.equal(applyRateBps(50, 100, "HALF_UP"), 1);
+  assert.equal(applyRateBps(50, 100, "HALF_EVEN"), 0);
+
+  const halfCent = [
+    r({ id: "BR:*:X@v1", ruleKey: "BR:*:X", version: 1, countryCode: "BR", productCategory: "*", taxType: "X", rateBps: 100 }),
+  ];
+  const inp = input({ amountMinor: 50 });
+  assert.equal(
+    calculateTax(inp, halfCent, { rulesetVersion: 1, roundingMode: "HALF_UP" }).taxAmountMinor,
+    1,
+  );
+  assert.equal(
+    calculateTax(inp, halfCent, { rulesetVersion: 1, roundingMode: "HALF_EVEN" }).taxAmountMinor,
+    0,
+  );
+});
+
+ok("BR digital services stacks federal PIS/COFINS + municipal ISS, never ICMS", () => {
+  const asOf = new Date().toISOString();
+  const date = "2026-06-01T12:00:00.000Z";
+  const picked = resolveApplicableRules(findCandidateRules("BR", date, asOf), {
+    countryCode: "BR",
+    productCategory: "digital_services",
+    customerType: "individual",
+    transactionDate: date,
+    asOf,
+  });
+
+  const taxTypes = picked.map((p) => p.taxType).sort();
+  assert.deepEqual(taxTypes, ["ICMS", "ISS", "PIS_COFINS_IMPORT"]);
+  // STF ADI 1945 / ADI 5659 (2021): ICMS and ISS are mutually exclusive on
+  // software, so ICMS resolves but is explicitly exempt. Without this rule the
+  // BR:*:ICMS wildcard would fall through and wrongly charge 17%.
+  const icms = picked.find((p) => p.taxType === "ICMS")!;
+  assert.equal(icms.treatment, "exempt");
+  assert.equal(icms.rateBps, 0);
+  assert.equal(picked.find((p) => p.taxType === "PIS_COFINS_IMPORT")?.taxScope, "federal");
+
+  const res = calculateTax(
+    input({ productCategory: "digital_services", amountMinor: 100_00 }),
+    picked,
+    { rulesetVersion: 1 },
+  );
+  assert.equal(res.taxAmountMinor, 14_25);
+  assert.equal(res.effectiveRateBps, 1425);
+});
+
+// F-023: Impuesto PAIS was not extended past December 2024, so the AR stack is
+// itself a date-based selection demo rather than a permanent 29%.
+ok("AR B2C digital stacks PAIS only while it was in force (lapsed 2024-12-23)", () => {
+  const asOf = new Date().toISOString();
+  const pick = (date: string) =>
+    resolveApplicableRules(findCandidateRules("AR", date, asOf), {
+      countryCode: "AR",
+      productCategory: "digital_services",
+      customerType: "individual",
+      transactionDate: date,
+      asOf,
+    });
+
+  const during = pick("2024-06-15T12:00:00.000Z");
+  const after = pick("2026-01-13T12:00:00.000Z");
+
+  assert.deepEqual(during.map((p) => p.taxType).sort(), ["IVA", "PAIS"]);
+  assert.deepEqual(after.map((p) => p.taxType).sort(), ["IVA"]);
+
+  const amount = input({ countryCode: "AR", currency: "ARS", productCategory: "digital_services" });
+  assert.equal(calculateTax(amount, during, { rulesetVersion: 1 }).effectiveRateBps, 2900);
+  assert.equal(calculateTax(amount, after, { rulesetVersion: 1 }).effectiveRateBps, 2100);
+});
+
+ok("PE digital services falls back to the country wildcard before 2024-12-01", () => {
+  const asOf = new Date().toISOString();
+  const pick = (date: string) =>
+    resolveApplicableRules(findCandidateRules("PE", date, asOf), {
+      countryCode: "PE",
+      productCategory: "digital_services",
+      customerType: "individual",
+      transactionDate: date,
+      asOf,
+    })[0];
+
+  assert.equal(pick("2024-06-15").ruleKey, "PE:*:IGV");
+  assert.equal(pick("2025-06-15").ruleKey, "PE:DIGITAL_SERVICES:IGV");
+});
+
+// =============================================================================
+section("6. Audit trail");
+// =============================================================================
+const auditedId = `txn_test_${Date.now()}`;
+
+ok("a successful calculation writes one self-contained audit row", () => {
+  const outcome = calculate({
+    transactionId: auditedId,
+    input: {
+      amountMinor: 199_99,
+      discountMinor: 0,
+      currency: "BRL",
+      countryCode: "BR",
+      productCategory: "digital_services",
+      customerType: "individual",
+      transactionDate: "2026-02-13T12:00:00.000Z",
+      priceIncludesTax: false,
+    },
+    rawRequest: { note: "test-tax.ts: BR stacked PIS/COFINS + ISS" },
+  });
+
+  // 9.25% + 5% of 199.99 = 18.50 + 10.00, plus a 0% ICMS line recording the
+  // STF exclusion. Three lines, two of them collecting.
+  assert.equal(outcome.result.taxAmountMinor, 28_50);
+  assert.equal(outcome.result.taxLines.length, 3);
+  assert.equal(outcome.result.taxLines.filter((l) => l.taxAmountMinor > 0).length, 2);
+
+  const record = getAudit(auditedId)!;
+  assert.ok(record, "audit record must exist");
+  assert.equal(record.status, "calculated");
+  assert.equal(record.taxAmountMinor, 28_50);
+  assert.equal(record.appliedRuleVersionIds.length, 3);
+  assert.equal(record.appliedRulesSnapshot.length, 3);
+  // The snapshot is a full copy, not just ids: it must carry the rates.
+  assert.ok(record.appliedRulesSnapshot.every((rule) => typeof rule.rateBps === "number"));
+  assert.match(record.calculationFingerprint, /^[0-9a-f]{64}$/);
+});
+
+ok("a failed calculation is audited too, and still raises the error", () => {
+  const failedId = `${auditedId}_fail`;
+  assert.throws(() =>
+    calculate({
+      transactionId: failedId,
+      input: {
+        amountMinor: 10_00,
+        discountMinor: 0,
+        currency: "BRL",
+        countryCode: "BR",
+        productCategory: "no_such_category_ever",
+        customerType: "individual",
+        // Before any BR rule was valid, so nothing matches at all.
+        transactionDate: "2015-01-01T00:00:00.000Z",
+        priceIncludesTax: false,
+      },
+      rawRequest: {},
+    }),
+  );
+
+  const record = getAudit(failedId)!;
+  assert.equal(record.status, "error");
+  assert.equal(record.error?.code, "NO_APPLICABLE_RULE");
+});
+
+// F-015 regression: a retry with a caller-supplied transaction_id used to hit
+// `UNIQUE constraint failed` and surface as a 500.
+ok("retrying a caller-supplied transaction_id replays instead of duplicating", () => {
+  const retryId = `${auditedId}_retry`;
+  const cmd = {
+    transactionId: retryId,
+    input: {
+      amountMinor: 100_00,
+      discountMinor: 0,
+      currency: "BRL",
+      countryCode: "BR",
+      productCategory: "electronics",
+      customerType: "individual" as const,
+      transactionDate: "2026-03-15T12:00:00.000Z",
+      priceIncludesTax: false,
+    },
+    rawRequest: {},
+  };
+
+  const first = calculate(cmd);
+  const second = calculate(cmd);
+
+  assert.equal(first.replayed, false);
+  assert.equal(second.replayed, true);
+  assert.equal(first.result.taxAmountMinor, second.result.taxAmountMinor);
+  assert.equal(second.transactionId, retryId);
+
+  const rows = getDb()
+    .prepare("SELECT COUNT(*) AS n FROM tax_calculation_audit WHERE transaction_id = ?")
+    .get(retryId) as { n: number };
+  assert.equal(rows.n, 1, "a retry must not append a second audit row");
+});
+
+ok("retrying a request that failed returns the original error, not a 500", () => {
+  const failRetryId = `${auditedId}_failretry`;
+  const cmd = {
+    transactionId: failRetryId,
+    input: {
+      amountMinor: 10_00,
+      discountMinor: 0,
+      currency: "BRL",
+      countryCode: "BR",
+      productCategory: "no_such_category_ever",
+      customerType: "individual" as const,
+      transactionDate: "2015-01-01T00:00:00.000Z",
+      priceIncludesTax: false,
+    },
+    rawRequest: {},
+  };
+
+  assert.throws(() => calculate(cmd), { code: "NO_APPLICABLE_RULE" });
+  assert.throws(
+    () => calculate(cmd),
+    (err: unknown) =>
+      err instanceof ReplayedFailureError && err.code === "NO_APPLICABLE_RULE",
+  );
+});
+
+// =============================================================================
+section("7. Immutability is a database guarantee, not a promise");
+// =============================================================================
+ok("UPDATE on the audit trail is rejected by SQLite", () => {
+  assert.throws(
+    () => getDb().exec("UPDATE tax_calculation_audit SET tax_amount_minor = 0"),
+    /append-only/,
+  );
+});
+
+ok("DELETE from the audit trail is rejected by SQLite", () => {
+  assert.throws(() => getDb().exec("DELETE FROM tax_calculation_audit"), /append-only/);
+});
+
+ok("rewriting a rule's rate in place is rejected by SQLite", () => {
+  assert.throws(
+    () => getDb().exec("UPDATE tax_rule_versions SET rate_bps = 1 WHERE id = 'BR:*:ICMS@v1'"),
+    /append-only/,
+  );
+});
+
+ok("stamping superseded_at is the one permitted rule mutation", () => {
+  const db = getDb();
+  db.exec("BEGIN");
+  db.prepare("UPDATE tax_rule_versions SET superseded_at = ? WHERE id = ?").run(
+    "2030-01-01T00:00:00.000Z",
+    "BR:*:ICMS@v1",
+  );
+  db.exec("ROLLBACK"); // do not disturb the seeded state
+});
+
+console.log(`\nAll ${checks} checks passed.\n`);

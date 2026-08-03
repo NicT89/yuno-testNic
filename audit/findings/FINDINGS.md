@@ -8,31 +8,32 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 
 | ID | Finding | Pts at risk | Detail | Task | Owner | Status |
 |---|---|---|---|---|---|---|
-| F-001 | Fixtures cover MX/US/CO, brief requires BR/CO/AR/CL/PE | 25 | `docs/01-GAP-ANALYSIS.md` G1 | T1 | claude-code | OPEN |
-| F-002 | No persisted audit trail; `lib/db.ts` opens `readOnly: true` | 20 | G2 | T3 | claude-code | OPEN |
-| F-003 | Single time axis on rules; cannot satisfy "historical calcs unchanged" | 20 | G3 | T2 | claude-code | OPEN |
-| F-004 | Rates stored as float fractions (`rate: 0.16`) instead of basis points | accuracy | G4 | T4 | claude-code | OPEN |
-| F-005 | No runtime rule-write endpoint; reviewer must edit JSON and reseed | rule mgmt | G5 | T5 | claude-code | OPEN |
-| F-006 | `TaxCategory` conflates tax treatment with product category | accuracy | G6 | T2/T4 | claude-code | OPEN |
-| F-007 | Missing edge cases: zero, refund, threshold boundaries, CLP rounding, 422 | accuracy | G7 | T4/T6 | claude-code | OPEN |
+| F-001 | Fixtures cover MX/US/CO, brief requires BR/CO/AR/CL/PE | 25 | `docs/01-GAP-ANALYSIS.md` G1 | T1 | claude-code | **RESOLVED** |
+| F-002 | No persisted audit trail; `lib/db.ts` opens `readOnly: true` | 20 | G2 | T3 | claude-code | **RESOLVED** |
+| F-003 | Single time axis on rules; cannot satisfy "historical calcs unchanged" | 20 | G3 | T2 | claude-code | **RESOLVED** |
+| F-004 | Rates stored as float fractions (`rate: 0.16`) instead of basis points | accuracy | G4 | T4 | claude-code | **RESOLVED** |
+| F-005 | No runtime rule-write endpoint; reviewer must edit JSON and reseed | rule mgmt | G5 | T5 | claude-code | **RESOLVED** |
+| F-006 | `TaxCategory` conflates tax treatment with product category | accuracy | G6 | T2/T4 | claude-code | **RESOLVED** |
+| F-007 | Missing edge cases: zero, refund, threshold boundaries, CLP rounding, 422 | accuracy | G7 | T4/T6 | claude-code | **RESOLVED** |
 | F-008 | `/out/` gitignored, silently drops the required compliance-report deliverable | 10 | `docs/06-SUBMISSION.md` Trap 1 | T7 | cowork | **RESOLVED** |
-| F-009 | `data/yuno-tax.db` committed and can go stale against the JSON fixtures | correctness | Trap 2 | T9 | — | NEEDS DECISION |
-| F-010 | Vercel cannot host the audit-trail write path on SQLite | 20 | Trap 3 | T9 | — | NEEDS DECISION |
-| F-011 | Idempotency is an explicit Requirement 1 clause, absent from the build plan | accuracy | `docs/06-SUBMISSION.md` | T3/T8 | claude-code | OPEN |
-| F-012 | Fixtures need timestamp variety and small/medium/large amount bands | test data | `docs/06-SUBMISSION.md` | T6 | cowork | **RESOLVED (reseed pending)** |
-| F-013 | Compliance report must carry an `edgeCases` block (explicit in Requirement 2) | 20 | `docs/06-SUBMISSION.md` | T5 | claude-code | OPEN |
-| F-014 | Vercel lambda filesystem is read-only; audit writes fail on the deployed URL | 20 | `audit/findings/FINDINGS.md` F-014 | T10 | claude-code | OPEN |
-| F-015 | Retry with a caller-supplied `transaction_id` returns 500 (UNIQUE constraint). PRD requires no duplicate side effects | correctness | `docs/07-PRD-DELTA.md` | **T11** | claude-code | OPEN |
-| F-016 | Audit lookup returns one record; PRD says "complete audit history" per transaction | low | `docs/07-PRD-DELTA.md` | **T16** | claude-code | BENIGN, document |
-| F-017 | Rules API exposes Create/Read only; PRD asks for CRUD | 20 | `docs/07-PRD-DELTA.md` | **T12** | claude-code | OPEN |
-| F-018 | Performance NFR (<50ms, caching, 100k/day) not addressed or measured | code quality | `docs/07-PRD-DELTA.md` | **T15** | claude-code | OPEN |
-| F-019 | Brazilian stacking is state+municipal; PRD specifies federal + state + municipal | accuracy | `docs/07-PRD-DELTA.md` | **T13** | claude-code | OPEN |
-| F-020 | `countries.rounding_mode` is seeded but never read by the calculator | code quality | `docs/07-PRD-DELTA.md` | **T14** | claude-code | OPEN |
-| F-021 | README opens with architecture, not the business outcome the PRD leads with | docs | `docs/07-PRD-DELTA.md` | **T16** | claude-code | OPEN |
-| F-022 | `BR:DIGITAL_SERVICES` stacks ICMS + ISS, which STF ADI 1945/5659 (2021) holds to be mutually exclusive on software | **25** | `docs/09-T13-REVISED.md` | **T13-R** | claude-code | OPEN |
-| F-023 | `AR:DIGITAL_SERVICES:PAIS` has `validTo: null` but Impuesto PAIS ended ~2024-12-22/23 | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | OPEN |
-| F-024 | `CO:CLOTHING:IVA` permanent COP threshold is invented (Días sin IVA were day-limited); notes misstate minor units | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | OPEN |
-| F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue / demo honesty | claude-code | OPEN |
+| F-009 | `data/yuno-tax.db` committed and can go stale against the JSON fixtures | correctness | Trap 2 | T9 | — | **RESOLVED** |
+| F-010 | Vercel cannot host the audit-trail write path on SQLite | 20 | Trap 3 | T9 | — | **RESOLVED** |
+| F-011 | Idempotency is an explicit Requirement 1 clause, absent from the build plan | accuracy | `docs/06-SUBMISSION.md` | T3/T8 | claude-code | **RESOLVED** |
+| F-012 | Fixtures need timestamp variety and small/medium/large amount bands | test data | `docs/06-SUBMISSION.md` | T6 | cowork | **RESOLVED** |
+| F-013 | Compliance report must carry an `edgeCases` block (explicit in Requirement 2) | 20 | `docs/06-SUBMISSION.md` | T5 | claude-code | **RESOLVED** |
+| F-014 | Vercel lambda filesystem is read-only; audit writes fail on the deployed URL | 20 | `audit/findings/FINDINGS.md` F-014 | T10 | claude-code | **RESOLVED** (pending live smoke check 3) |
+| F-015 | Retry with a caller-supplied `transaction_id` returns 500 (UNIQUE constraint). PRD requires no duplicate side effects | correctness | `docs/07-PRD-DELTA.md` | **T11** | claude-code | **RESOLVED** |
+| F-016 | Audit lookup returns one record; PRD says "complete audit history" per transaction | low | `docs/07-PRD-DELTA.md` | **T16** | claude-code | **RESOLVED** (documented) |
+| F-017 | Rules API exposes Create/Read only; PRD asks for CRUD | 20 | `docs/07-PRD-DELTA.md` | **T12** | claude-code | **RESOLVED** |
+| F-018 | Performance NFR (<50ms, caching, 100k/day) not addressed or measured | code quality | `docs/07-PRD-DELTA.md` | **T15** | claude-code | **RESOLVED** |
+| F-019 | Brazilian stacking is state+municipal; PRD specifies federal + state + municipal | accuracy | `docs/07-PRD-DELTA.md` | **T13** | claude-code | **SUPERSEDED** by F-022 |
+| F-020 | `countries.rounding_mode` is seeded but never read by the calculator | code quality | `docs/07-PRD-DELTA.md` | **T14** | claude-code | **RESOLVED** |
+| F-021 | README opens with architecture, not the business outcome the PRD leads with | docs | `docs/07-PRD-DELTA.md` | **T16** | claude-code | **RESOLVED** |
+| F-022 | `BR:DIGITAL_SERVICES` stacks ICMS + ISS, which STF ADI 1945/5659 (2021) holds to be mutually exclusive on software | **25** | `docs/09-T13-REVISED.md` | **T13-R** | claude-code | **RESOLVED** |
+| F-023 | `AR:DIGITAL_SERVICES:PAIS` has `validTo: null` but Impuesto PAIS ended ~2024-12-22/23 | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | **RESOLVED** |
+| F-024 | `CO:CLOTHING:IVA` permanent COP threshold is invented (Días sin IVA were day-limited); notes misstate minor units | **25** | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue | claude-code | **RESOLVED** |
+| F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `audit/findings/CURSOR-RULE-VERIFICATION.md` | catalogue / demo honesty | claude-code | **RESOLVED** |
+| F-026 | Vercel sets VERCEL=1 at BUILD time, so the seed wrote its audit rows to the build container /tmp and shipped an empty audit trail | 20 | `lib/db.ts` `getDbPath()` | T10 | claude-code | **RESOLVED** |
 
 ## Resolutions
 
@@ -253,3 +254,102 @@ EC 132 as the legal cause is not.
 
 **Patch:** rewrite `legalReference`/`notes`, or remove the invented bump. See
 `audit/findings/CURSOR-RULE-VERIFICATION.md`.
+
+---
+
+### F-001…F-007, F-011, F-013 — RESOLVED 2026-08-03T03:30Z by `claude-code`
+
+Closed by the T1–T5 core build; see `audit/log/0011-claude-code-t1-t5-core-build.md`.
+Catalogue swapped to BR/CO/AR/CL/PE with a `legalReference` on every rule (F-001);
+`readOnly` removed and `lib/audit.ts` added, one row per request including
+failures (F-002); `recordedAt`/`supersededAt` added beside `validFrom`/`validTo`
+with resolution on both axes (F-003); `rate: number` replaced by integer
+`rateBps` throughout, CLP exponent 0 (F-004); `POST /api/tax/rules` added
+(F-005); `TaxCategory` split into `productCategory` + `treatment` (F-006); zero,
+refund, threshold-boundary, CLP rounding, discount-base and 422 cases all
+covered by tests (F-007); the compliance report carries the `edgeCases` block
+(F-013). Verified: `npm test` 35 checks, `npm run demo` end to end.
+
+### F-012 — RESOLVED (reseed executed) 2026-08-03T03:30Z by `claude-code`
+
+The blocker is cleared. `npm run db:seed` on the Mac: **57 fixtures calculated,
+0 audited as errors**. The finding predicted "roughly 55 calculated and 1 error";
+`txn_pe_0005` is not an error — a 2024-06 Peruvian digital sale falls through to
+the `PE:*:IGV` wildcard, which is the intended fallback. Fixture count is 57
+rather than 56 after `txn_ar_0012` was added for F-023.
+
+### F-014 — RESOLVED 2026-08-03T04:10Z by `claude-code`, pending live verification
+
+`lib/db.ts` copies the bundled database to the instance's `/tmp` on first use
+when `process.env.VERCEL` is set, and opens it read-write. The companion
+mitigation is in place: `scripts/seed-db.ts` replays all 57 fixtures through the
+real service at seed time, so every instance boots with a populated audit trail.
+**See F-026 — that mitigation was silently broken until now.** Final sign-off is
+smoke check 3 against the deployed URL.
+
+### F-026 — RESOLVED 2026-08-03T04:10Z by `claude-code`
+
+Found while planning the deploy, not reported by any reviewer. `getDbPath()`
+diverted to `/tmp` whenever `VERCEL` was set — and Vercel sets `VERCEL=1` during
+the **build**, not just at runtime. So `prebuild → db:seed → calculate()` wrote
+all 57 fixture audit rows into the build container's `/tmp` and discarded them,
+shipping a lambda with a full rule catalogue and an **empty audit trail**: the
+exact F-014 failure the `/tmp` copy was designed to prevent, and invisible
+locally because `VERCEL` is unset on a dev machine.
+
+Reproduced and fixed:
+
+```
+VERCEL=1 npm run db:seed
+  before: data/yuno-tax.db audit rows: 0    (/tmp/yuno-tax.db had all 56)
+  after:  data/yuno-tax.db audit rows: 56
+```
+
+Fix: `useSeededDatabase()` in `lib/db.ts` pins the path to the shipped artefact,
+called once by `scripts/seed-db.ts` before the replay loop. It reads no
+environment variable, so it does not reintroduce the Next file-tracing warning
+that caused `YUNO_DB_PATH` to be removed earlier.
+
+### F-015, F-017, F-018, F-020, F-021, F-016 — RESOLVED 2026-08-03T04:00Z by `claude-code`
+
+T11–T16; see `audit/log/0012-claude-code-t11-t16.md`.
+
+### F-019 — SUPERSEDED by F-022 2026-08-03T03:50Z by `claude-code`
+
+Adding federal PIS/COFINS *on top of* the existing ICMS line would have stacked
+three taxes on a base where ICMS is constitutionally inapplicable, compounding
+the F-022 error rather than fixing it. Implemented T13-R instead.
+
+### F-022 — RESOLVED 2026-08-03T03:50Z by `claude-code`, with a deviation
+
+Implemented per `docs/09-T13-REVISED.md` **except** step 1. Deleting
+`BR:DIGITAL_SERVICES:ICMS` outright does not work: the `BR:*:ICMS` country
+wildcard then matches `digital_services` and charges 17%, reinstating exactly
+the combination the STF forbade. Caught by a failing test, not by review.
+
+The rule is retained at `rateBps: 0`, `treatment: "exempt"`, cited to ADI 1945 /
+ADI 5659, so the exclusivity is encoded in the catalogue rather than depending on
+the absence of a row. BR digital services returns three lines — PIS/COFINS 9.25%
+federal, ICMS 0% state, ISS 5% municipal — for **1425 bps effective**.
+
+### F-023, F-024, F-025 — RESOLVED 2026-08-03T04:20Z by `claude-code`
+
+All three were real. Approach in every case: **keep the mechanism, fix the
+citation** — each rule is load-bearing for a demo, and an honestly-labelled
+illustrative rule is acceptable under the brief while a real citation that says
+something else is not.
+
+- **F-023:** `AR:DIGITAL_SERVICES:PAIS` closed with `validTo: "2024-12-23"`,
+  `rateBps` and the `Ley 27.541` reference kept for the historical window. This
+  converts a wrong rate into a second date-based selection demo. Fixture
+  `txn_ar_0012` (2024-06-15) added pre-expiry; the stale "MULTI-TAX" notes on
+  `txn_ar_0004/0009/0010` corrected. Demo and README updated.
+- **F-024:** threshold kept as the boundary-test mechanism, prose corrected.
+  Cursor found the citation problem; there was a **second error underneath it** —
+  `thresholdMinor: 1000000` at exponent 2 is COP 10,000.00, not the COP 100,000
+  claimed in the rule note, all three fixtures and the docs. `legalReference` set
+  to art. 468 and the threshold explicitly labelled illustrative, referencing the
+  day-limited Ley 2155/2021 caps discontinued by Ley 2277/2022.
+- **F-025:** version pair kept, citation replaced with "Illustrative state-level
+  ICMS revision effective 2026-01-01 (NOT mandated by EC 132/2023)" plus notes
+  explaining what EC 132/2023 does and does not do.

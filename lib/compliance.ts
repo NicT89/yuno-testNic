@@ -1,224 +1,210 @@
 /**
- * Compliance report generator.
+ * Compliance report: the artefact a finance team actually files.
  *
- * Aggregates taxed transactions for a single country into a structure suitable
- * for filings / internal audit: totals, category breakdown, and rule-version
- * breakdown (so rate changes mid-period are visible).
+ * Aggregation happens IN SQL, not in a JavaScript loop over the rows. A monthly
+ * filing for 450,000 transactions cannot be assembled in application memory,
+ * and a report that only works at fixture scale is not a report.
  *
- * Transactions are loaded from SQLite (`transactions` table).
+ * The source is the audit trail, not the rule table: the report states what was
+ * actually charged, which is what a tax authority asks about.
  */
 
-import { calculateTax } from "./calculator";
+import type { DatabaseSync } from "node:sqlite";
 import { getDb } from "./db";
-import type {
-  ComplianceReport,
-  TaxAmountMode,
-  TaxCategory,
-  TaxedTransaction,
-  Transaction,
-} from "./types";
+import { formatMinor } from "./money";
 
-interface TxnRow {
-  id: string;
-  country: string;
-  region: string | null;
-  category: string;
-  amount: number;
-  amount_mode: string;
-  currency: string;
-  transaction_date: string;
-  description: string;
-}
-
-function mapTxn(row: TxnRow): Transaction {
-  return {
-    id: row.id,
-    country: row.country,
-    region: row.region,
-    category: row.category as TaxCategory,
-    amount: row.amount,
-    amountMode: row.amount_mode as TaxAmountMode,
-    currency: row.currency,
-    transactionDate: row.transaction_date,
-    description: row.description,
+export interface ComplianceReport {
+  reportId: string;
+  generatedAt: string;
+  countryCode: string;
+  period: { from: string; to: string };
+  currency: string | null;
+  totals: {
+    transactionsProcessed: number;
+    successfulCalculations: number;
+    grossBaseAmountMinor: number;
+    totalTaxCollectedMinor: number;
+    totalPayableMinor: number;
+    averageEffectiveRateBps: number;
   };
+  byCategory: Array<{
+    productCategory: string;
+    transactions: number;
+    baseAmountMinor: number;
+    taxAmountMinor: number;
+    effectiveRateBps: number;
+  }>;
+  byTaxType: Array<{ taxType: string; taxAmountMinor: number; taxLines: number }>;
+  edgeCases: {
+    zeroAmount: number;
+    refunds: number;
+    exempt: number;
+    belowThreshold: number;
+    errors: number;
+    errorDetail: Array<{ code: string; count: number; sample: string }>;
+  };
+  rulesetVersionsInPeriod: number[];
 }
 
-export function loadTransactions(): Transaction[] {
-  const rows = getDb()
+export function buildComplianceReport(
+  countryCode: string,
+  from: string,
+  to: string,
+  db: DatabaseSync = getDb(),
+): ComplianceReport {
+  const where =
+    "WHERE input_country_code = ? AND transaction_date >= ? AND transaction_date <= ?";
+  const p = [countryCode, from, to] as const;
+
+  const totals = db
     .prepare(
-      `SELECT id, country, region, category, amount, amount_mode,
-              currency, transaction_date, description
-       FROM transactions
-       ORDER BY transaction_date, id`,
+      `SELECT COUNT(*) AS n,
+              SUM(CASE WHEN status != 'error' THEN 1 ELSE 0 END) AS ok,
+              COALESCE(SUM(base_amount_minor), 0) AS base,
+              COALESCE(SUM(tax_amount_minor), 0) AS tax,
+              COALESCE(SUM(total_amount_minor), 0) AS total
+         FROM tax_calculation_audit ${where}`,
     )
-    .all() as unknown as TxnRow[];
-  return rows.map(mapTxn);
-}
+    .get(...p) as {
+    n: number;
+    ok: number | null;
+    base: number;
+    tax: number;
+    total: number;
+  };
 
-export interface ReportOptions {
-  country: string;
-  /** Inclusive period start (YYYY-MM-DD). Defaults to earliest txn. */
-  from?: string;
-  /** Inclusive period end (YYYY-MM-DD). Defaults to latest txn. */
-  to?: string;
-}
+  const byCategory = db
+    .prepare(
+      `SELECT input_product_category AS productCategory,
+              COUNT(*) AS transactions,
+              COALESCE(SUM(base_amount_minor), 0) AS baseAmountMinor,
+              COALESCE(SUM(tax_amount_minor), 0) AS taxAmountMinor
+         FROM tax_calculation_audit ${where}
+        GROUP BY input_product_category
+        ORDER BY taxAmountMinor DESC`,
+    )
+    .all(...p) as unknown as Array<{
+    productCategory: string;
+    transactions: number;
+    baseAmountMinor: number;
+    taxAmountMinor: number;
+  }>;
 
-function taxTransaction(txn: Transaction): TaxedTransaction {
-  const tax = calculateTax({
-    country: txn.country,
-    region: txn.region,
-    category: txn.category,
-    amount: txn.amount,
-    amountMode: txn.amountMode,
-    transactionDate: txn.transactionDate,
-    currency: txn.currency,
-  });
-  return { transaction: txn, tax };
-}
+  // The tax-type split is unnested from the stored tax lines with json_each,
+  // so multi-tax stacking (PIS/COFINS + ISS on one sale) reports per tax rather than
+  // collapsing into a single figure. Still one SQL statement.
+  const byTaxType = db
+    .prepare(
+      `SELECT json_extract(line.value, '$.taxType')        AS taxType,
+              SUM(json_extract(line.value, '$.taxAmountMinor')) AS taxAmountMinor,
+              COUNT(*)                                     AS taxLines
+         FROM tax_calculation_audit a,
+              json_each(json_extract(a.output_payload_json, '$.taxLines')) line
+        WHERE a.input_country_code = ?
+          AND a.transaction_date >= ?
+          AND a.transaction_date <= ?
+          AND a.status != 'error'
+        GROUP BY taxType
+        ORDER BY taxAmountMinor DESC`,
+    )
+    .all(...p) as unknown as Array<{
+    taxType: string;
+    taxAmountMinor: number;
+    taxLines: number;
+  }>;
 
-/**
- * Build a compliance report for one country over an optional date window.
- */
-export function generateComplianceReport(options: ReportOptions): ComplianceReport {
-  const all = loadTransactions().filter((t) => t.country === options.country);
+  const currencyRow = db
+    .prepare(
+      `SELECT input_currency AS c, COUNT(*) AS n
+         FROM tax_calculation_audit ${where}
+        GROUP BY input_currency ORDER BY n DESC LIMIT 1`,
+    )
+    .get(...p) as { c: string; n: number } | undefined;
 
-  if (all.length === 0) {
-    throw new Error(`No sample transactions found for country=${options.country}`);
-  }
+  const edge = db
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN status = 'zero_amount' THEN 1 ELSE 0 END) AS zeroAmount,
+         SUM(CASE WHEN status = 'refund'      THEN 1 ELSE 0 END) AS refunds,
+         SUM(CASE WHEN status = 'exempt'      THEN 1 ELSE 0 END) AS exempt,
+         SUM(CASE WHEN status = 'error'       THEN 1 ELSE 0 END) AS errors,
+         SUM(CASE WHEN output_payload_json LIKE '%Below-threshold exemption%'
+                  THEN 1 ELSE 0 END)                             AS belowThreshold
+       FROM tax_calculation_audit ${where}`,
+    )
+    .get(...p) as Record<string, number | null>;
 
-  const dates = all.map((t) => t.transactionDate).sort();
-  const from = options.from ?? dates[0];
-  const to = options.to ?? dates[dates.length - 1];
+  const errorDetail = db
+    .prepare(
+      `SELECT error_code AS code, COUNT(*) AS count, MIN(error_message) AS sample
+         FROM tax_calculation_audit ${where} AND error_code IS NOT NULL
+        GROUP BY error_code`,
+    )
+    .all(...p) as unknown as Array<{ code: string; count: number; sample: string }>;
 
-  const filtered = all.filter(
-    (t) => t.transactionDate >= from && t.transactionDate <= to,
-  );
+  const rulesetVersions = db
+    .prepare(
+      `SELECT DISTINCT ruleset_version AS v FROM tax_calculation_audit ${where} ORDER BY v`,
+    )
+    .all(...p) as unknown as Array<{ v: number }>;
 
-  if (filtered.length === 0) {
-    throw new Error(
-      `No transactions for country=${options.country} in period ${from}..${to}`,
-    );
-  }
-
-  const taxed = filtered.map(taxTransaction);
-  const currency = taxed[0].tax.currency;
-
-  const summary = taxed.reduce(
-    (acc, row) => {
-      acc.transactionCount += 1;
-      acc.totalNet += row.tax.netAmount;
-      acc.totalTax += row.tax.taxAmount;
-      acc.totalGross += row.tax.grossAmount;
-      return acc;
-    },
-    { transactionCount: 0, totalNet: 0, totalTax: 0, totalGross: 0 },
-  );
-
-  const categoryMap = new Map<
-    TaxCategory,
-    { transactionCount: number; totalNet: number; totalTax: number; rate: number | null }
-  >();
-  for (const row of taxed) {
-    const existing = categoryMap.get(row.tax.category) ?? {
-      transactionCount: 0,
-      totalNet: 0,
-      totalTax: 0,
-      rate: row.tax.rate,
-    };
-    existing.transactionCount += 1;
-    existing.totalNet += row.tax.netAmount;
-    existing.totalTax += row.tax.taxAmount;
-    if (existing.rate !== row.tax.rate) existing.rate = null;
-    categoryMap.set(row.tax.category, existing);
-  }
-
-  const ruleMap = new Map<
-    string,
-    {
-      ruleId: string;
-      version: number;
-      taxName: string;
-      rate: number;
-      transactionCount: number;
-      totalTax: number;
-    }
-  >();
-  for (const row of taxed) {
-    const key = `${row.tax.appliedRule.id}@v${row.tax.appliedRule.version}`;
-    const existing = ruleMap.get(key) ?? {
-      ruleId: row.tax.appliedRule.id,
-      version: row.tax.appliedRule.version,
-      taxName: row.tax.taxName,
-      rate: row.tax.rate,
-      transactionCount: 0,
-      totalTax: 0,
-    };
-    existing.transactionCount += 1;
-    existing.totalTax += row.tax.taxAmount;
-    ruleMap.set(key, existing);
-  }
+  const base = Number(totals.base) || 0;
+  const tax = Number(totals.tax) || 0;
 
   return {
+    reportId: `RPT-${countryCode}-${from.slice(0, 10)}-${to.slice(0, 10)}`,
     generatedAt: new Date().toISOString(),
-    country: options.country,
-    currency,
+    countryCode,
     period: { from, to },
-    summary,
-    byCategory: Array.from(categoryMap.entries()).map(([category, data]) => ({
-      category,
-      ...data,
+    currency: currencyRow?.c ?? null,
+    totals: {
+      transactionsProcessed: Number(totals.n) || 0,
+      successfulCalculations: Number(totals.ok) || 0,
+      grossBaseAmountMinor: base,
+      totalTaxCollectedMinor: tax,
+      totalPayableMinor: Number(totals.total) || 0,
+      averageEffectiveRateBps: base === 0 ? 0 : Math.round((tax / base) * 10_000),
+    },
+    byCategory: byCategory.map((c) => ({
+      ...c,
+      effectiveRateBps:
+        c.baseAmountMinor === 0
+          ? 0
+          : Math.round((c.taxAmountMinor / c.baseAmountMinor) * 10_000),
     })),
-    byRuleVersion: Array.from(ruleMap.values()),
-    transactions: taxed,
+    byTaxType,
+    edgeCases: {
+      zeroAmount: Number(edge.zeroAmount) || 0,
+      refunds: Number(edge.refunds) || 0,
+      exempt: Number(edge.exempt) || 0,
+      belowThreshold: Number(edge.belowThreshold) || 0,
+      errors: Number(edge.errors) || 0,
+      errorDetail,
+    },
+    rulesetVersionsInPeriod: rulesetVersions.map((r) => r.v),
   };
 }
 
-/**
- * Render a human-readable text compliance report (also available as JSON via API).
- */
-export function formatComplianceReportText(report: ComplianceReport): string {
-  const fmt = (minor: number) =>
-    `${(minor / 100).toFixed(2)} ${report.currency}`;
-
-  const lines: string[] = [
-    `COMPLIANCE TAX REPORT — ${report.country}`,
-    `Generated: ${report.generatedAt}`,
-    `Period:    ${report.period.from} → ${report.period.to}`,
-    ``,
-    `SUMMARY`,
-    `  Transactions: ${report.summary.transactionCount}`,
-    `  Total net:    ${fmt(report.summary.totalNet)}`,
-    `  Total tax:    ${fmt(report.summary.totalTax)}`,
-    `  Total gross:  ${fmt(report.summary.totalGross)}`,
-    ``,
-    `BY CATEGORY`,
-  ];
-
-  for (const row of report.byCategory) {
-    const rateLabel = row.rate === null ? "mixed" : `${(row.rate * 100).toFixed(2)}%`;
-    lines.push(
-      `  ${row.category.padEnd(12)} count=${row.transactionCount}  net=${fmt(row.totalNet)}  tax=${fmt(row.totalTax)}  rate=${rateLabel}`,
-    );
-  }
-
-  lines.push(``, `BY RULE VERSION`);
-  for (const row of report.byRuleVersion) {
-    lines.push(
-      `  ${row.ruleId}@v${row.version} (${row.taxName}, ${(row.rate * 100).toFixed(2)}%)  count=${row.transactionCount}  tax=${fmt(row.totalTax)}`,
-    );
-  }
-
-  lines.push(``, `TRANSACTIONS`);
-  for (const row of report.transactions) {
-    lines.push(
-      `  ${row.transaction.id}  ${row.transaction.transactionDate}  ${row.transaction.description}`,
-    );
-    lines.push(
-      `    net=${fmt(row.tax.netAmount)}  tax=${fmt(row.tax.taxAmount)}  gross=${fmt(row.tax.grossAmount)}  rule=${row.tax.appliedRule.id}@v${row.tax.appliedRule.version}`,
-    );
-  }
-
-  lines.push(``);
-  return lines.join("\n");
+/** CSV rendering of the same report, for finance teams that live in a spreadsheet. */
+export function formatComplianceReportCsv(report: ComplianceReport): string {
+  const cur = report.currency ?? "XXX";
+  return [
+    "product_category,transactions,base_amount,tax_amount,effective_rate",
+    ...report.byCategory.map((c) =>
+      [
+        c.productCategory,
+        c.transactions,
+        formatMinor(c.baseAmountMinor, cur),
+        formatMinor(c.taxAmountMinor, cur),
+        `${(c.effectiveRateBps / 100).toFixed(2)}%`,
+      ].join(","),
+    ),
+    [
+      "TOTAL",
+      report.totals.transactionsProcessed,
+      formatMinor(report.totals.grossBaseAmountMinor, cur),
+      formatMinor(report.totals.totalTaxCollectedMinor, cur),
+      `${(report.totals.averageEffectiveRateBps / 100).toFixed(2)}%`,
+    ].join(","),
+  ].join("\n");
 }

@@ -1,0 +1,80 @@
+{
+  "reportId": "RPT-PE-0000-01-01-9999-12-31",
+  "generatedAt": "2026-08-03T03:14:45.082Z",
+  "countryCode": "PE",
+  "period": {
+    "from": "0000-01-01",
+    "to": "9999-12-31"
+  },
+  "currency": "PEN",
+  "totals": {
+    "transactionsProcessed": 12,
+    "successfulCalculations": 12,
+    "grossBaseAmountMinor": 1702450,
+    "totalTaxCollectedMinor": 296820,
+    "totalPayableMinor": 1999270,
+    "averageEffectiveRateBps": 1743
+  },
+  "byCategory": [
+    {
+      "productCategory": "electronics",
+      "transactions": 5,
+      "baseAmountMinor": 1270001,
+      "taxAmountMinor": 228600,
+      "effectiveRateBps": 1800
+    },
+    {
+      "productCategory": "digital_services",
+      "transactions": 2,
+      "baseAmountMinor": 378000,
+      "taxAmountMinor": 68040,
+      "effectiveRateBps": 1800
+    },
+    {
+      "productCategory": "clothing",
+      "transactions": 1,
+      "baseAmountMinor": 999,
+      "taxAmountMinor": 180,
+      "effectiveRateBps": 1802
+    },
+    {
+      "productCategory": "medicine",
+      "transactions": 1,
+      "baseAmountMinor": 32000,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    },
+    {
+      "productCategory": "food",
+      "transactions": 1,
+      "baseAmountMinor": 2550,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    },
+    {
+      "productCategory": "books",
+      "transactions": 2,
+      "baseAmountMinor": 18900,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    }
+  ],
+  "byTaxType": [
+    {
+      "taxType": "IGV",
+      "taxAmountMinor": 296820,
+      "taxLines": 12
+    }
+  ],
+  "edgeCases": {
+    "zeroAmount": 0,
+    "refunds": 1,
+    "exempt": 4,
+    "belowThreshold": 0,
+    "errors": 0,
+    "errorDetail": []
+  },
+  "rulesetVersionsInPeriod": [
+    1
+  ]
+}

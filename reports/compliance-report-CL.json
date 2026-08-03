@@ -1,0 +1,73 @@
+{
+  "reportId": "RPT-CL-0000-01-01-9999-12-31",
+  "generatedAt": "2026-08-03T03:14:45.082Z",
+  "countryCode": "CL",
+  "period": {
+    "from": "0000-01-01",
+    "to": "9999-12-31"
+  },
+  "currency": "CLP",
+  "totals": {
+    "transactionsProcessed": 12,
+    "successfulCalculations": 12,
+    "grossBaseAmountMinor": 1611467,
+    "totalTaxCollectedMinor": 306178,
+    "totalPayableMinor": 1917645,
+    "averageEffectiveRateBps": 1900
+  },
+  "byCategory": [
+    {
+      "productCategory": "digital_services",
+      "transactions": 2,
+      "baseAmountMinor": 1339990,
+      "taxAmountMinor": 254598,
+      "effectiveRateBps": 1900
+    },
+    {
+      "productCategory": "books",
+      "transactions": 3,
+      "baseAmountMinor": 112990,
+      "taxAmountMinor": 21468,
+      "effectiveRateBps": 1900
+    },
+    {
+      "productCategory": "electronics",
+      "transactions": 4,
+      "baseAmountMinor": 109990,
+      "taxAmountMinor": 20898,
+      "effectiveRateBps": 1900
+    },
+    {
+      "productCategory": "clothing",
+      "transactions": 1,
+      "baseAmountMinor": 45000,
+      "taxAmountMinor": 8550,
+      "effectiveRateBps": 1900
+    },
+    {
+      "productCategory": "food",
+      "transactions": 2,
+      "baseAmountMinor": 3497,
+      "taxAmountMinor": 664,
+      "effectiveRateBps": 1899
+    }
+  ],
+  "byTaxType": [
+    {
+      "taxType": "IVA",
+      "taxAmountMinor": 306178,
+      "taxLines": 11
+    }
+  ],
+  "edgeCases": {
+    "zeroAmount": 1,
+    "refunds": 1,
+    "exempt": 0,
+    "belowThreshold": 0,
+    "errors": 0,
+    "errorDetail": []
+  },
+  "rulesetVersionsInPeriod": [
+    1
+  ]
+}
