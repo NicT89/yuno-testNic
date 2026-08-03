@@ -1,0 +1,95 @@
+# 04 — Tax rule catalogue (BR / CO / AR / CL / PE)
+
+29 rule versions. Machine-readable source of truth:
+`docs/reference/src/seed/rules.ts` — port it into `data/tax-rules.json`.
+
+Rates reflect published statutory rates for LATAM digital and cross-border
+commerce, 2025-2026. Each rule carries a `legalReference` so an auditor can
+trace it. They are a defensible working set, not legal advice: the design goal
+is that finance can correct any rate through the API without a deploy and
+without rewriting history.
+
+## Summary
+
+| Country | Currency (exp) | Standard | Reduced | Exempt | Special |
+|---|---|---|---|---|---|
+| Brazil | BRL (2) | ICMS 17%, **18% from 2026-01-01** on electronics | food 7%, medicine 12% | books, education | **Stacks** ICMS + municipal ISS 5% on digital services |
+| Colombia | COP (2) | IVA 19% | food 5% | books, medicine | Clothing under COP 100,000.00 exempt (**threshold**) |
+| Argentina | ARS (2) | IVA 21% | food 10.5%, medicine 10.5% | books | **Stacks** IVA + PAIS 8% on B2C digital; **reverse charge** for B2B digital |
+| Chile | CLP (**0**) | IVA 19% on everything | none | none | Zero-decimal currency; Chile taxes books too |
+| Peru | PEN (2) | IGV 18% | none | food, books, medicine | Digital-services rule valid only from 2024-12-01 |
+
+## Rule key convention
+
+```
+<COUNTRY>:<CATEGORY>:<TAX_TYPE>[:<QUALIFIER>]      stable identity
+<rule_key>@v<n>                                    one immutable version
+```
+
+`*` in the category slot is the country-wide wildcard. An exact category beats
+the wildcard; an exact `customerType` beats `*`. Resolution picks one winning
+rule **per tax type**, which is how stacking works.
+
+Examples: `BR:ELECTRONICS:ICMS@v2`, `CO:*:IVA@v1`,
+`AR:DIGITAL_SERVICES:IVA:B2B@v1`.
+
+## Versioned pairs seeded for the demo
+
+These exist so date-based rule selection is provable the moment the seed
+finishes, without the reviewer having to change anything.
+
+| Rule | v1 | v2 |
+|---|---|---|
+| `BR:ELECTRONICS:ICMS` | 17%, valid 2020-01-01 to 2026-01-01 | 18%, valid from 2026-01-01 (EC 132/2023 CBS/IBS transition) |
+
+A transaction dated 2025-12-31 resolves to v1 at 17%. The same inputs dated
+2026-01-02 resolve to v2 at 18%. Same `rule_key`, different valid window,
+no code change.
+
+`PE:DIGITAL_SERVICES:IGV` is valid only from 2024-12-01 (DL 1623). A 2024-06
+transaction in that category falls through to the `PE:*:IGV` wildcard instead,
+which exercises the fallback path.
+
+## Multi-tax stacking
+
+Two cases, both real:
+
+- **Brazil digital services:** state ICMS 17% (priority 10) + municipal ISS 5%
+  (priority 20) = 22% effective. `LC 87/1996` and `LC 116/2003`.
+- **Argentina B2C digital services:** IVA 21% (priority 10) + Impuesto PAIS 8%
+  (priority 20) = 29% effective. `RG 4240/2018` and `Ley 27.541`.
+
+Rules carry `priority` for stack order and `compoundOnPrevious` for taxes
+levied on (base + accumulated tax) rather than on the base alone.
+
+## Treatments
+
+`standard` and `reduced` charge `rateBps`. `exempt` and `zero_rated` collect
+nothing (the difference is whether the transaction stays in scope for
+reporting). `reverse_charge` collects nothing because liability shifts to the
+registered business buyer, which is the Argentina B2B case.
+
+## Thresholds
+
+`thresholdMinor` means the rule does not apply below that amount. Colombia
+clothing under COP 100,000.00 is the seeded example. Threshold comparison uses
+the absolute value so refunds mirror the original sale exactly.
+
+## Verified reference output
+
+From `docs/reference/DEMO_OUTPUT.md`, all confirmed by passing tests:
+
+```
+BR  electronics       100.00 BRL   tax  18.00   18.00%  ICMS 18.00%
+BR  food              100.00 BRL   tax   7.00    7.00%  ICMS 7.00%
+BR  books             100.00 BRL   tax   0.00    0.00%  ICMS 0.00%
+BR  digital_services  100.00 BRL   tax  22.00   22.00%  ICMS 17.00% + ISS 5.00%
+CO  electronics       100.00 COP   tax  19.00   19.00%  IVA 19.00%
+CO  food              100.00 COP   tax   5.00    5.00%  IVA 5.00%
+AR  food              100.00 ARS   tax  10.50   10.50%  IVA 10.50%
+AR  digital_services  100.00 ARS   tax  29.00   29.00%  PAIS 8.00% + IVA 21.00%
+AR  digital_services (business)     tax   0.00    0.00%  reverse charge
+CL  books             100000 CLP   tax  19000   19.00%  IVA 19.00%
+PE  electronics       100.00 PEN   tax  18.00   18.00%  IGV 18.00%
+PE  books             100.00 PEN   tax   0.00    0.00%  IGV 0.00%
+```

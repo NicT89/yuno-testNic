@@ -1,0 +1,39 @@
+---
+description: TiendaMax tax engine — invariants and review posture
+alwaysApply: true
+---
+
+Graded take-home. Context lives in `docs/`. Read `docs/00-CONTEXT.md` (rubric +
+locked decisions) and `docs/01-GAP-ANALYSIS.md` (what is missing) before
+proposing changes. Task list with file paths: `docs/02-BUILD-PLAN.md`.
+Reference implementation to port from: `docs/reference/`.
+Before any submission or final review: `docs/06-SUBMISSION.md`.
+
+MULTI-AGENT PROTOCOL (mandatory, full rules in `audit/README.md`):
+- Read `audit/ACTIVE.md` FIRST, every session. It holds the file-ownership
+  table, open blockers, and pending decisions. Do not edit a path another agent
+  has claimed.
+- Claim your paths in `audit/ACTIVE.md` before editing; release when done.
+- Append a new file to `audit/log/` after any meaningful action. Append-only:
+  never edit an existing entry. Name it `NNNN-cursor-<slug>.md`.
+- Findings live in `audit/findings/FINDINGS.md` as F-NNN. Update Status when
+  you fix one and cite the id in your log entry. Never delete a finding.
+
+Cursor's role is **audit and fixtures**, tasks T6-T8. Claude Code owns T1-T5.
+When reviewing, work through `docs/05-REVIEW-CHECKLIST.md` and report findings
+as `[file:line] — finding — rubric criterion at risk`. Do not fix silently.
+
+Invariants that must never be broken:
+1. Money = integer minor units. Rates = integer basis points. No floats. CLP exponent 0.
+2. `lib/calculator.ts` and `lib/rules.ts` are pure: no sqlite, no next/*, no clock.
+3. `tax_rule_versions` is append-only and BITEMPORAL:
+   effectiveFrom/effectiveTo -> selected by TRANSACTION DATE
+   recordedAt/supersededAt   -> selected by AS-OF INSTANT
+   Never merge the axes. Never mutate a rate in place.
+4. Audit trail is immutable (SQLite triggers) and records every request including failures.
+5. No applicable rule => 422 NO_APPLICABLE_RULE. Never a silent 0%.
+6. Report aggregation in SQL, not in application memory.
+
+Priority when trading off: accuracy (25) > audit (20) = rule versioning (20) >
+API design (15) > code quality (10) = docs (10). There is no UI score; ignore
+`app/page.tsx`.
