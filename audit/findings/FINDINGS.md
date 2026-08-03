@@ -35,6 +35,13 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `docs/11-DATA-DISCLAIMER.md` | catalogue / demo honesty | cursor | **RESOLVED by labelling** |
 | F-026 | Vercel sets VERCEL=1 at BUILD time, so the seed wrote its audit rows to the build container /tmp and shipped an empty audit trail | 20 | `lib/db.ts` `getDbPath()` | T10 | claude-code | **RESOLVED** |
 | F-027 | `docs/reference/` looks like a second submission; `docs/_archive/` is scaffolding noise | docs | `audit/log/0015-cowork-final-repo-audit.md` | hygiene | cursor | **RESOLVED** |
+| F-028 | Equivalent non-UTC transaction timestamps select different valid-time rule versions | 25 | `lib/validation.ts:147` stored the caller's offset string without normalization | audit pass 001 | cursor | **RESOLVED** |
+| F-029 | An uncovered zero-value transaction silently returns 200/0% instead of `NO_APPLICABLE_RULE` | 25 | `lib/calculator.ts:82` short-circuited before checking rule coverage | audit pass 001 | cursor | **RESOLVED** |
+| F-030 | A discount larger than a sale is misclassified as a refund; unsafe amounts can overflow exact integer-rate multiplication | 25 | live edge probe against `/api/tax/calculate` | audit pass 001 | cursor | **RESOLVED** |
+| F-031 | Rule append-only trigger allows in-place mutation of treatment, threshold, scope and other version fields | 20 | rollback probe accepted `UPDATE ... SET treatment='exempt'` | audit pass 001 | cursor | **RESOLVED** |
+| F-032 | Validation and malformed-JSON failures bypass the immutable audit trail | 20 | invalid local request left audit count unchanged at 57 | audit pass 001 | cursor | **RESOLVED** |
+| F-033 | Six catalogue rows have neither `legalReference` nor explanatory notes despite reviewer-facing claims; demo says nine categories but shows seven | 10 | `data/tax-rules.json`; `scripts/demo.ts:52` | next audit pass | cursor | **OPEN** |
+| F-034 | README promises snake_case requests and responses, but calculation responses mix snake_case envelope fields with camelCase domain fields | 15 | `README.md:116`; live `/api/tax/calculate` response | next audit pass | cursor | **OPEN** |
 
 ## Resolutions
 
@@ -457,4 +464,45 @@ remains RESOLVED under the same id in the status table.
 
 Banner added to `docs/reference/README.md`. `docs/_archive/` removed from git
 and ignored. Reference build retained as labelled process artifact.
+
+### F-028–F-032 — RESOLVED 2026-08-03T14:10Z by `cursor`
+
+The first rubric pass executed all required calculation edges against the live
+API instead of relying on the existing suite. It reproduced five defects:
+
+- `2025-12-31T23:00:00-03:00` selected Brazil electronics v1 while its UTC
+  equivalent selected v2. Validation now canonicalizes valid timestamps.
+- A zero-value transaction before every rule window returned 200/0%. Rule
+  coverage is now checked before the zero-amount short circuit.
+- A discount larger than the sale became a one-unit refund. Validation now
+  rejects over-discounts and bounds amounts to exact basis-point multiplication.
+- The rule trigger protected only selected columns. It now permits exactly one
+  transition: a null `superseded_at` may be stamped once while every immutable
+  field remains byte-for-byte unchanged.
+- Route-level validation failures never reached `calculate()`, so no audit row
+  was written. They now enter the same immutable table with the raw body,
+  conservative indexed placeholders and an `INVALID_REQUEST` error.
+
+Verified after the patches: all 35 checks, clean build/typecheck, 70/70 API
+matrix, 20 edge probes, five persisted `INVALID_REQUEST` rows, full demo and
+live smoke 8/8.
+
+### F-033 — OPEN 2026-08-03T14:10Z by `cursor`
+
+`BR:MEDICINE:ICMS`, `BR:EDUCATION:ICMS`, `CO:MEDICINE:IVA`,
+`AR:FOOD:IVA`, `AR:MEDICINE:IVA` and `PE:MEDICINE:IGV` have both
+`legalReference: null` and `notes: null`. The test titled “every seeded rule
+carries a legal reference or an explanatory note” deliberately allows six
+undocumented rows, so it proves a weaker statement than it prints. The demo
+also labels seven distinct displayed categories as nine. Fix both in the next
+pass; this pass reached the five-change cap.
+
+### F-034 — OPEN 2026-08-03T14:10Z by `cursor`
+
+README says requests and responses use snake_case at the boundary, but a live
+calculation returns `transaction_id` beside `baseAmountMinor`, `taxLines` and
+`effectiveRateBps`. The required values are present and documented, so this is
+an API-consistency deduction rather than a correctness failure. Decide in the
+next pass whether to translate the full response or narrow the README claim;
+do not silently break existing examples.
 
