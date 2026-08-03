@@ -22,6 +22,28 @@ The engine refuses to guess. If no rule covers a transaction it returns **422**,
 never a silent 0% — because a silently untaxed sale is the failure that produces
 the penalty.
 
+## Try it live
+
+**https://yuno-test-nic.vercel.app** — deployed and serving the full API.
+
+```bash
+# Brazil, cross-border digital services: federal PIS/COFINS 9.25% + municipal ISS 5%
+curl -s -X POST https://yuno-test-nic.vercel.app/api/tax/calculate \
+  -H 'Content-Type: application/json' \
+  -d '{"country_code":"BR","product_category":"digital_services","amount":100.00}'
+
+# The audit trail that ships with the build — these resolve on any instance
+curl -s https://yuno-test-nic.vercel.app/api/audit/txn_br_0001
+curl -s "https://yuno-test-nic.vercel.app/api/tax/report?country=BR"
+```
+
+Two notes so nothing surprises you. The first request may cold-start, so give it
+a moment. And reading back an audit record you created seconds earlier can 404
+on a cold instance, because the SQLite file is copied per-instance on Vercel —
+the seeded transactions above always resolve. That boundary is set out in full
+under [SQLite on Vercel](#sqlite-on-vercel--trade-off), and `npm run demo`
+exercises the whole engine locally without it.
+
 ## About the tax data
 
 The tax rates, thresholds and effective dates in this repository are
