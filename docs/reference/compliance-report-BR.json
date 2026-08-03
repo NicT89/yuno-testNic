@@ -1,0 +1,92 @@
+{
+  "reportId": "RPT-BR-2024-01-01-2027-01-01",
+  "generatedAt": "2026-08-03T01:47:06.797Z",
+  "countryCode": "BR",
+  "period": {
+    "from": "2024-01-01",
+    "to": "2027-01-01"
+  },
+  "currency": "BRL",
+  "totals": {
+    "transactionsProcessed": 24,
+    "successfulCalculations": 24,
+    "grossBaseAmountMinor": 752229,
+    "totalTaxCollectedMinor": 135687,
+    "totalPayableMinor": 887916,
+    "averageEffectiveRateBps": 1804
+  },
+  "byCategory": [
+    {
+      "productCategory": "electronics",
+      "transactions": 12,
+      "baseAmountMinor": 489990,
+      "taxAmountMinor": 87098,
+      "effectiveRateBps": 1778
+    },
+    {
+      "productCategory": "digital_services",
+      "transactions": 3,
+      "baseAmountMinor": 179999,
+      "taxAmountMinor": 39600,
+      "effectiveRateBps": 2200
+    },
+    {
+      "productCategory": "clothing",
+      "transactions": 2,
+      "baseAmountMinor": 42000,
+      "taxAmountMinor": 7140,
+      "effectiveRateBps": 1700
+    },
+    {
+      "productCategory": "food",
+      "transactions": 3,
+      "baseAmountMinor": 15440,
+      "taxAmountMinor": 1081,
+      "effectiveRateBps": 700
+    },
+    {
+      "productCategory": "medicine",
+      "transactions": 1,
+      "baseAmountMinor": 6400,
+      "taxAmountMinor": 768,
+      "effectiveRateBps": 1200
+    },
+    {
+      "productCategory": "education",
+      "transactions": 1,
+      "baseAmountMinor": 500,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    },
+    {
+      "productCategory": "books",
+      "transactions": 2,
+      "baseAmountMinor": 17900,
+      "taxAmountMinor": 0,
+      "effectiveRateBps": 0
+    }
+  ],
+  "byTaxType": [
+    {
+      "taxType": "ICMS",
+      "taxAmountMinor": 126687,
+      "transactions": 22
+    },
+    {
+      "taxType": "ISS",
+      "taxAmountMinor": 9000,
+      "transactions": 3
+    }
+  ],
+  "edgeCases": {
+    "zeroAmount": 2,
+    "refunds": 2,
+    "exempt": 3,
+    "belowThreshold": 0,
+    "errors": 0,
+    "errorDetail": []
+  },
+  "rulesetVersionsInPeriod": [
+    1
+  ]
+}

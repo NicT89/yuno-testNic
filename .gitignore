@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# --- tax engine additions (see audit/findings/FINDINGS.md F-008, F-009) ---
+# `/out/` above is the Next.js static-export default and silently excluded the
+# generated compliance report, which is a REQUIRED DELIVERABLE. Generated
+# reports therefore live in /reports/ and ARE committed. Do not add /reports/
+# to this file. Git cannot re-include a file inside an excluded directory, so
+# moving the path is the only fix.
+data/*.db
+data/*.db-journal
+data/*.db-wal

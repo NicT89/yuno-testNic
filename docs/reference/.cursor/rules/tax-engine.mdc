@@ -1,0 +1,24 @@
+---
+description: Core invariants for the TiendaMax tax compliance engine
+alwaysApply: true
+---
+
+This repo is a graded take-home. Audit and review against these invariants
+before proposing any change.
+
+1. Money is ALWAYS integer minor units; rates are ALWAYS basis points. No floats.
+2. `src/domain/` is pure: no db, no HTTP, no clock. Dependency arrow is
+   api -> service -> db -> domain, inward only.
+3. `tax_rule_versions` is append-only and BITEMPORAL:
+   - valid_from / valid_to      selected by TRANSACTION DATE
+   - recorded_at / superseded_at selected by AS-OF INSTANT
+   Never merge the two axes. Never UPDATE a rate in place.
+4. The audit trail is immutable (enforced by SQLite triggers) and records every
+   request, including failures. Audit rows store BOTH rule version ids AND a
+   full JSON snapshot of the rules used.
+5. No applicable rule => 422 NO_APPLICABLE_RULE. Never a silent 0%.
+6. Report aggregation happens in SQL, not in application memory.
+
+When reviewing, prioritise in this order (matches the scoring rubric):
+calculation accuracy (25) > audit trail (20) = rule versioning (20) >
+API design (15) > code quality (10) = documentation (10).
