@@ -42,6 +42,9 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-032 | Validation and malformed-JSON failures bypass the immutable audit trail | 20 | invalid local request left audit count unchanged at 57 | audit pass 001 | cursor | **RESOLVED** |
 | F-033 | Six catalogue rows have neither `legalReference` nor explanatory notes despite reviewer-facing claims; demo says nine categories but shows seven | 10 | `data/tax-rules.json`; `scripts/demo.ts:52` | next audit pass | cursor | **OPEN** |
 | F-034 | README promises snake_case requests and responses, but calculation responses mix snake_case envelope fields with camelCase domain fields | 15 | `README.md:116`; live `/api/tax/calculate` response | next audit pass | cursor | **OPEN** |
+| F-035 | A rejected request reusing a successful `transaction_id` is not audited; the route returns 400 while the immutable row remains the earlier success | 20 | `lib/tax-service.ts:55`; direct local valid-then-invalid probe | audit pass 002 | cursor | **OPEN** |
+| F-036 | A corrected request cannot reuse the `transaction_id` from a validation failure and receives 500 `INVALID_REQUEST` | 15 | `lib/tax-service.ts:146`; direct local invalid-then-valid probe | audit pass 002 | cursor | **OPEN** |
+| F-037 | Zero-amount audit provenance names resolved rules while the same row's stored output names none | 20 | `lib/calculator.ts:89`; direct local response/audit comparison | audit pass 002 | cursor | **OPEN** |
 
 ## Resolutions
 
