@@ -33,6 +33,7 @@ export interface RejectedRequestCommand {
   rawRequest: unknown;
   code: string;
   message: string;
+  /** Caller-supplied id, retained in rawRequest but never used as the audit PK. */
   transactionId?: string;
 }
 
@@ -40,23 +41,16 @@ export interface RejectedRequestCommand {
  * Persist a request rejected before it could become a valid CalculationInput.
  * The raw body remains authoritative; conservative placeholders satisfy the
  * indexed audit columns without pretending that invalid data was calculable.
+ *
+ * Rejections always get their own generated audit identity. Reserving the
+ * caller's transaction id here would poison a corrected retry; reusing an id
+ * from a prior success would instead make this failed request disappear.
  */
 export function auditRejectedRequest(cmd: RejectedRequestCommand): AuditRecord {
   const raw =
     cmd.rawRequest && typeof cmd.rawRequest === "object" && !Array.isArray(cmd.rawRequest)
       ? (cmd.rawRequest as Record<string, unknown>)
       : {};
-  const suppliedId =
-    typeof cmd.transactionId === "string" &&
-    cmd.transactionId.length > 0 &&
-    cmd.transactionId.length <= 128
-      ? cmd.transactionId
-      : null;
-  if (suppliedId) {
-    const existing = getAudit(suppliedId);
-    if (existing) return existing;
-  }
-
   const now = new Date().toISOString();
   const rawCountry = typeof raw.country_code === "string" ? raw.country_code.toUpperCase() : "";
   const transactionDateValue =
@@ -87,7 +81,7 @@ export function auditRejectedRequest(cmd: RejectedRequestCommand): AuditRecord {
   };
 
   return writeAudit({
-    transactionId: suppliedId ?? `txn_rejected_${randomUUID()}`,
+    transactionId: `txn_rejected_${randomUUID()}`,
     transactionDate,
     input,
     rawInput: cmd.rawRequest ?? null,
