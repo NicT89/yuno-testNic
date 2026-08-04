@@ -1,7 +1,28 @@
 import { NextResponse } from "next/server";
 
+function snakeCaseKey(key: string): string {
+  return key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+}
+
+/**
+ * Translate domain-shaped objects at the HTTP boundary without leaking that
+ * transport convention into the pure calculator or repository layers.
+ */
+export function toSnakeCaseKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(toSnakeCaseKeys);
+  if (!value || typeof value !== "object") return value;
+  if (Object.getPrototypeOf(value) !== Object.prototype) return value;
+
+  return Object.fromEntries(
+    Object.entries(value).map(([key, nested]) => [
+      snakeCaseKey(key),
+      toSnakeCaseKeys(nested),
+    ]),
+  );
+}
+
 export function jsonOk<T>(data: T, init?: ResponseInit) {
-  return NextResponse.json(data, init);
+  return NextResponse.json(toSnakeCaseKeys(data), init);
 }
 
 /**
@@ -16,7 +37,9 @@ export function jsonError(
   details?: unknown,
 ) {
   return NextResponse.json(
-    { error: { code, message, ...(details !== undefined ? { details } : {}) } },
+    toSnakeCaseKeys({
+      error: { code, message, ...(details !== undefined ? { details } : {}) },
+    }),
     { status },
   );
 }
