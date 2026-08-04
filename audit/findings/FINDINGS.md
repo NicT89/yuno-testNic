@@ -40,11 +40,12 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-030 | A discount larger than a sale is misclassified as a refund; unsafe amounts can overflow exact integer-rate multiplication | 25 | live edge probe against `/api/tax/calculate` | audit pass 001 | cursor | **RESOLVED** |
 | F-031 | Rule append-only trigger allows in-place mutation of treatment, threshold, scope and other version fields | 20 | rollback probe accepted `UPDATE ... SET treatment='exempt'` | audit pass 001 | cursor | **RESOLVED** |
 | F-032 | Validation and malformed-JSON failures bypass the immutable audit trail | 20 | invalid local request left audit count unchanged at 57 | audit pass 001 | cursor | **RESOLVED** |
-| F-033 | Six catalogue rows have neither `legalReference` nor explanatory notes despite reviewer-facing claims; demo says nine categories but shows seven | 10 | `data/tax-rules.json`; `scripts/demo.ts:52` | next audit pass | cursor | **OPEN** |
-| F-034 | README promises snake_case requests and responses, but calculation responses mix snake_case envelope fields with camelCase domain fields | 15 | `README.md:116`; live `/api/tax/calculate` response | next audit pass | cursor | **OPEN** |
-| F-035 | A rejected request reusing a successful `transaction_id` is not audited; the route returns 400 while the immutable row remains the earlier success | 20 | `lib/tax-service.ts:55`; direct local valid-then-invalid probe | audit pass 002 | cursor | **OPEN** |
-| F-036 | A corrected request cannot reuse the `transaction_id` from a validation failure and receives 500 `INVALID_REQUEST` | 15 | `lib/tax-service.ts:146`; direct local invalid-then-valid probe | audit pass 002 | cursor | **OPEN** |
-| F-037 | Zero-amount audit provenance names resolved rules while the same row's stored output names none | 20 | `lib/calculator.ts:89`; direct local response/audit comparison | audit pass 002 | cursor | **OPEN** |
+| F-033 | Six catalogue rows have neither `legalReference` nor explanatory notes despite reviewer-facing claims; demo says nine categories but shows seven | 10 | `data/tax-rules.json`; `scripts/demo.ts:52` | audit pass 002 | cursor | **RESOLVED** |
+| F-034 | README promises snake_case requests and responses, but calculation responses mix snake_case envelope fields with camelCase domain fields | 15 | `README.md:116`; live `/api/tax/calculate` response | audit pass 002 | cursor | **RESOLVED** |
+| F-035 | A rejected request reusing a successful `transaction_id` is not audited; the route returns 400 while the immutable row remains the earlier success | 20 | `lib/tax-service.ts:55`; direct local valid-then-invalid probe | audit pass 002 | cursor | **RESOLVED** |
+| F-036 | A corrected request cannot reuse the `transaction_id` from a validation failure and receives 500 `INVALID_REQUEST` | 15 | `lib/tax-service.ts:146`; direct local invalid-then-valid probe | audit pass 002 | cursor | **RESOLVED** |
+| F-037 | Zero-amount audit provenance names resolved rules while the same row's stored output names none | 20 | `lib/calculator.ts:89`; direct local response/audit comparison | audit pass 002 | cursor | **RESOLVED** |
+| F-038 | Reviewer-linked docs retain stale 29-rule/56-fixture and statutory-rate claims; README mentions but does not link the committed report | 1 | `docs/04-TAX-RULES.md:3-8`; `docs/06-SUBMISSION.md:78-79`; `README.md:85` | next audit pass | cursor | **OPEN** |
 
 ## Resolutions
 
@@ -508,4 +509,35 @@ calculation returns `transaction_id` beside `baseAmountMinor`, `taxLines` and
 an API-consistency deduction rather than a correctness failure. Decide in the
 next pass whether to translate the full response or narrow the README claim;
 do not silently break existing examples.
+
+### F-033–F-037 — RESOLVED 2026-08-04T14:18Z by `cursor`
+
+- **F-033:** all 30 rule versions now carry an honest citation or explicit
+  illustrative label. The catalogue test requires zero omissions. The demo
+  matrix now actually displays all seven seeded categories and labels them as
+  seven.
+- **F-034:** successful and error JSON responses recursively translate domain
+  keys to snake_case at the HTTP boundary, including null-prototype rows
+  returned by `node:sqlite`. `replayed` now names either idempotency mechanism
+  accurately. The compatibility smoke accepts the already-deployed camelCase
+  response until this branch is deployed.
+- **F-035/F-036:** pre-calculation rejections always receive a fresh generated
+  audit identity and return its URL. They can no longer disappear behind an
+  existing success or reserve the caller's transaction id against a corrected
+  retry.
+- **F-037:** a covered zero amount returns zero-valued tax lines naming every
+  matched rule version, so response breakdown, stored output and audit
+  provenance agree.
+
+Verified with 70/70 country/category/customer combinations, all 20 prescribed
+edges, dedicated valid-then-invalid and invalid-then-corrected probes, 35/35
+tests, clean build/typecheck, local smoke 8/8 and live smoke 8/8.
+
+### F-038 — OPEN 2026-08-04T14:18Z by `cursor`
+
+The scored root docs are accurate, but linked process/catalogue docs still say
+29 rules and 56 fixtures, and `docs/04-TAX-RULES.md` calls the working set
+statutory despite the root disclaimer. The README mentions `reports/` without a
+direct markdown link to a committed report. Deferred because pass 002 reached
+the five-finding cap; this is the highest-value bounded start for pass 003.
 

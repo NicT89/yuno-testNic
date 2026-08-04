@@ -76,6 +76,18 @@ changes to `treatment`, thresholds, scope and notes. → Define the one permitte
 state transition (null `superseded_at` to one timestamp) and reject any UPDATE
 whose full old/new row differs elsewhere.
 
+**Do not give pre-validation failures the business transaction id.**
+*(2026-08-04)* A rejected body stored under the caller's `transaction_id`
+either hid behind an existing success or reserved that id so a corrected retry
+returned 500. → Give every pre-calculation rejection a generated audit identity,
+keep the requested id in the raw payload, and return the generated audit URL.
+
+**SQLite result rows may have a null prototype.** *(2026-08-04)* The first
+recursive response serializer handled plain domain objects but skipped nested
+`node:sqlite` rows, leaving report keys camelCase. → Transform enumerable keys
+on JSON-shaped objects regardless of prototype; verify recursively across every
+endpoint, not just the calculation response.
+
 ## Dead ends — do not repeat
 
 **`YUNO_DB_PATH` environment override in `lib/db.ts`.** *(2026-08-03)* Made
