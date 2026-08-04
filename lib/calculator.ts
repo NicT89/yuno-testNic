@@ -88,7 +88,7 @@ export function calculateTax(
 
   if (netAmount === 0) {
     steps.push("Amount is zero: no taxable event, no tax due.");
-    return emptyResult(input, exponent, opts, "zero_amount", steps, notes, gross, discount);
+    return emptyResult(input, rules, exponent, opts, "zero_amount", steps, notes, gross, discount);
   }
 
   const isRefund = netAmount < 0;
@@ -249,6 +249,7 @@ function line(
 
 function emptyResult(
   input: CalculationInput,
+  rules: TaxRuleVersion[],
   exponent: number,
   opts: CalculateOptions,
   status: CalculationResult["status"],
@@ -257,6 +258,14 @@ function emptyResult(
   gross: number,
   discount: number,
 ): CalculationResult {
+  const taxLines = rules.map((rule) =>
+    line(
+      rule,
+      0,
+      0,
+      `Zero taxable amount; ${rule.id} matched, so ${rule.taxType} due is ${formatMinor(0, input.currency)}.`,
+    ),
+  );
   return {
     status,
     currency: input.currency,
@@ -267,13 +276,15 @@ function emptyResult(
     taxAmountMinor: 0,
     totalAmountMinor: 0,
     effectiveRateBps: 0,
-    taxLines: [],
+    taxLines,
     rulesetVersion: opts.rulesetVersion,
     engineVersion: ENGINE_VERSION,
     breakdown: {
-      summary: "Zero-amount transaction: no taxable event.",
+      summary:
+        `Zero-amount transaction: no taxable event; matched ` +
+        `${taxLines.map((taxLine) => taxLine.ruleVersionId).join(", ")}.`,
       steps,
-      appliedRuleVersionIds: [],
+      appliedRuleVersionIds: taxLines.map((taxLine) => taxLine.ruleVersionId),
       notes,
     },
   };
