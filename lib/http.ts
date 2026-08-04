@@ -11,7 +11,7 @@ function snakeCaseKey(key: string): string {
 export function toSnakeCaseKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(toSnakeCaseKeys);
   if (!value || typeof value !== "object") return value;
-  if (Object.getPrototypeOf(value) !== Object.prototype) return value;
+  if (value instanceof Date) return value;
 
   return Object.fromEntries(
     Object.entries(value).map(([key, nested]) => [
