@@ -123,7 +123,7 @@
     "validFrom": "2020-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": null,
+    "legalReference": "Illustrative: modelled reduced ICMS rate for medicines",
     "notes": null
   },
   {
@@ -203,7 +203,7 @@
     "validFrom": "2020-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": null,
+    "legalReference": "Illustrative: modelled ICMS exemption for education",
     "notes": null
   },
   {
@@ -283,7 +283,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": null,
+    "legalReference": "Illustrative: modelled IVA exemption for medicines",
     "notes": null
   },
   {
@@ -363,7 +363,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": null,
+    "legalReference": "Illustrative: modelled reduced IVA rate for food",
     "notes": null
   },
   {
@@ -403,7 +403,7 @@
     "validFrom": "2017-01-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": null,
+    "legalReference": "Illustrative: modelled reduced IVA rate for medicines",
     "notes": null
   },
   {
@@ -583,7 +583,7 @@
     "validFrom": "2011-03-01",
     "validTo": null,
     "recordedAt": "2024-01-01T00:00:00.000Z",
-    "legalReference": null,
+    "legalReference": "Illustrative: modelled IGV exemption for medicines",
     "notes": null
   },
   {
