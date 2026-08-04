@@ -1,13 +1,15 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-03T05:15Z by `cursor`
-**Phase:** Submit-ready — final Cursor audit closed; F-001…F-027 RESOLVED
+**Last updated:** 2026-08-04T14:18Z by `cursor`
+**Phase:** Rubric audit pass 002 complete at 98/100; F-038 open
 **Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
 ## File ownership (claim before editing, release when done)
 
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
+| cursor | — **CLAIM RELEASED 14:18Z** (rubric pass 002; F-033–F-037 resolved, F-038 queued). | rubric audit pass 002 | done |
+| cursor | — **CLAIM RELEASED 14:13Z** (rubric pass 001; F-028…F-032 resolved, F-033/F-034 queued). | rubric audit pass 001 | done |
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
 | cursor | — **CLAIM RELEASED 05:15Z** (final audit + F-027). Artifacts: `audit/findings/CURSOR-FINAL-AUDIT.md`, log `0016`, reference banner, `_archive` removed | final audit + F-027 | done |
 | cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
@@ -57,6 +59,8 @@ read a seeded id such as `txn_br_0001`.
 
 ## Recent log entries
 
+- `0018-cursor-rubric-pass-002.md` — rubric pass 002, F-033–F-038
+- `0017-cursor-rubric-pass-001.md` — rubric pass 001, F-028–F-034
 - `0016-cursor-final-audit.md` — CURSOR-FINAL-AUDIT, F-014/F-027 closeout
 - `0015-cowork-final-repo-audit.md` — opened F-027
 - `0014-claude-code-ship-and-smoke.md` — ship + smoke

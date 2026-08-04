@@ -23,6 +23,7 @@ export class ValidationError extends Error {
 }
 
 const CUSTOMER_TYPES: CustomerType[] = ["individual", "business"];
+const MAX_AMOUNT_MINOR = Math.floor(Number.MAX_SAFE_INTEGER / 10_000);
 
 function requireString(
   body: Record<string, unknown>,
@@ -51,9 +52,9 @@ function optionalBoolean(
 function optionalInteger(body: Record<string, unknown>, field: string): number | undefined {
   const value = body[field];
   if (value === undefined || value === null) return undefined;
-  if (typeof value !== "number" || !Number.isInteger(value)) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value)) {
     throw new ValidationError(
-      `\`${field}\` must be an integer number of minor currency units.`,
+      `\`${field}\` must be a safe integer number of minor currency units.`,
       field,
     );
   }
@@ -118,10 +119,22 @@ export function toCalculationInput(body: Record<string, unknown>): CalculationIn
       "amount",
     );
   }
+  if (Math.abs(amountMinor) > MAX_AMOUNT_MINOR) {
+    throw new ValidationError(
+      `\`amount\` exceeds the largest value that can be taxed exactly (${MAX_AMOUNT_MINOR} minor units).`,
+      body.amount_minor !== undefined ? "amount_minor" : "amount",
+    );
+  }
 
   const discountMinor = resolveAmount(body, "discount_minor", "discount", currency) ?? 0;
   if (discountMinor < 0) {
     throw new ValidationError("`discount` must not be negative.", "discount");
+  }
+  if (discountMinor > Math.max(amountMinor, 0)) {
+    throw new ValidationError(
+      "`discount` must not exceed a non-negative sale amount; submit a negative amount for a refund.",
+      body.discount_minor !== undefined ? "discount_minor" : "discount",
+    );
   }
 
   const customerType = (body.customer_type ?? "individual") as CustomerType;
@@ -144,7 +157,10 @@ export function toCalculationInput(body: Record<string, unknown>): CalculationIn
         "transaction_date",
       );
     }
-    transactionDate = body.transaction_date;
+    // Rule windows are stored as canonical ISO strings and compared
+    // lexicographically. Normalize offsets so equivalent instants cannot select
+    // different versions (for example 23:00-03:00 is 02:00Z the next day).
+    transactionDate = parsed.toISOString();
   }
 
   return {
