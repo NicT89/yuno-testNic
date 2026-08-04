@@ -34,8 +34,15 @@ export async function POST(request: Request) {
   const body = await readJsonBody(request);
   if (!body) {
     const message = "Request body must be a JSON object.";
-    auditRejectedRequest({ rawRequest: null, code: "INVALID_REQUEST", message });
-    return jsonError(400, "INVALID_REQUEST", message);
+    const audit = auditRejectedRequest({
+      rawRequest: null,
+      code: "INVALID_REQUEST",
+      message,
+    });
+    return jsonError(400, "INVALID_REQUEST", message, {
+      auditTransactionId: audit.transactionId,
+      auditUrl: `/api/audit/${audit.transactionId}`,
+    });
   }
 
   try {
@@ -50,20 +57,24 @@ export async function POST(request: Request) {
     return jsonOk({
       transaction_id: outcome.transactionId,
       calculated_at: outcome.createdAt,
-      replayed_from_idempotency_key: outcome.replayed,
+      replayed: outcome.replayed,
       ...presentResult(outcome.result),
       audit_url: `/api/audit/${outcome.transactionId}`,
     });
   } catch (err) {
     if (err instanceof ValidationError) {
-      auditRejectedRequest({
+      const audit = auditRejectedRequest({
         rawRequest: body,
         code: err.code,
         message: err.message,
         transactionId:
           typeof body.transaction_id === "string" ? body.transaction_id : undefined,
       });
-      return jsonError(400, err.code, err.message, err.field ? { field: err.field } : undefined);
+      return jsonError(400, err.code, err.message, {
+        ...(err.field ? { field: err.field } : {}),
+        auditTransactionId: audit.transactionId,
+        auditUrl: `/api/audit/${audit.transactionId}`,
+      });
     }
     if (err instanceof NoApplicableRuleError) {
       // 422, never a silent 0%: an unpriced tax is a compliance risk, and the
