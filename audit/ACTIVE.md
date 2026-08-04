@@ -8,6 +8,7 @@
 
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
+| cursor | `data/tax-rules.json`, `lib/{calculator,http,tax-service}.ts`, `app/api/tax/calculate/route.ts`, `scripts/{demo,test-tax}.ts`, `verify/smoke-test.sh`, `reports/*.json`, `audit/{ACTIVE,AGENT-FEEDBACK}.md`, `audit/findings/FINDINGS.md`, `audit/{log,scorecard}/**` | rubric audit pass 002; F-033–F-037 | 2026-08-04T14:10Z |
 | cursor | — **CLAIM RELEASED 14:13Z** (rubric pass 001; F-028…F-032 resolved, F-033/F-034 queued). | rubric audit pass 001 | done |
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
 | cursor | — **CLAIM RELEASED 05:15Z** (final audit + F-027). Artifacts: `audit/findings/CURSOR-FINAL-AUDIT.md`, log `0016`, reference banner, `_archive` removed | final audit + F-027 | done |
