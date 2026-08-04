@@ -164,6 +164,8 @@ ok("zero amount is not a taxable event", () => {
   const res = calculateTax(input({ amountMinor: 0 }), standard, { rulesetVersion: 1 });
   assert.equal(res.status, "zero_amount");
   assert.equal(res.taxAmountMinor, 0);
+  assert.deepEqual(res.taxLines.map((line) => line.ruleVersionId), ["BR:*:ICMS@v1"]);
+  assert.deepEqual(res.breakdown.appliedRuleVersionIds, ["BR:*:ICMS@v1"]);
   assert.throws(
     () => calculateTax(input({ amountMinor: 0 }), [], { rulesetVersion: 1 }),
     NoApplicableRuleError,
@@ -336,9 +338,7 @@ ok("every seeded rule carries a legal reference or an explanatory note", () => {
   const undocumented = listRules({ includeSuperseded: true }).filter(
     (rule) => !rule.legalReference && !rule.notes,
   );
-  // Rates that mirror an already-cited rule may lean on that citation; anything
-  // else must tell an auditor where it came from.
-  assert.ok(undocumented.length <= 6, `too many undocumented rules: ${undocumented.length}`);
+  assert.deepEqual(undocumented, []);
 });
 
 ok("BR:ELECTRONICS:ICMS resolves @v1 on 2025-12-31 and @v2 on 2026-01-02", () => {
@@ -516,7 +516,7 @@ ok("a failed calculation is audited too, and still raises the error", () => {
   assert.equal(record.error?.code, "NO_APPLICABLE_RULE");
 
   const validationId = `${auditedId}_validation`;
-  auditRejectedRequest({
+  const validationRecord = auditRejectedRequest({
     transactionId: validationId,
     rawRequest: {
       transaction_id: validationId,
@@ -526,10 +526,41 @@ ok("a failed calculation is audited too, and still raises the error", () => {
     code: "INVALID_REQUEST",
     message: "product_category is required",
   });
-  const validationRecord = getAudit(validationId)!;
+  assert.notEqual(validationRecord.transactionId, validationId);
   assert.equal(validationRecord.status, "error");
   assert.equal(validationRecord.error?.code, "INVALID_REQUEST");
   assert.equal(validationRecord.input.raw instanceof Object, true);
+
+  // A validation failure must not reserve the caller's idempotency identity:
+  // after fixing the body, the caller can calculate under the requested id.
+  const corrected = calculate({
+    transactionId: validationId,
+    input: {
+      amountMinor: 100_00,
+      discountMinor: 0,
+      currency: "BRL",
+      countryCode: "BR",
+      productCategory: "electronics",
+      customerType: "individual",
+      transactionDate: "2026-03-15T12:00:00.000Z",
+      priceIncludesTax: false,
+    },
+    rawRequest: {},
+  });
+  assert.equal(corrected.replayed, false);
+  assert.equal(corrected.transactionId, validationId);
+
+  // Reusing a successful transaction id for an invalid request still appends
+  // a distinct rejection row; it must never return the unrelated success row.
+  const collision = auditRejectedRequest({
+    transactionId: auditedId,
+    rawRequest: { transaction_id: auditedId, country_code: "BR" },
+    code: "INVALID_REQUEST",
+    message: "product_category is required",
+  });
+  assert.notEqual(collision.transactionId, auditedId);
+  assert.equal(collision.status, "error");
+  assert.equal(getAudit(auditedId)?.status, "calculated");
 });
 
 // F-015 regression: a retry with a caller-supplied transaction_id used to hit
