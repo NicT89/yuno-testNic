@@ -1,7 +1,7 @@
 {
   "disclaimer": "Illustrative tax data. Not tax advice.",
   "reportId": "RPT-BR-0000-01-01-9999-12-31",
-  "generatedAt": "2026-08-03T03:29:09.334Z",
+  "generatedAt": "2026-08-04T14:14:04.331Z",
   "countryCode": "BR",
   "period": {
     "from": "0000-01-01",
@@ -9,12 +9,12 @@
   },
   "currency": "BRL",
   "totals": {
-    "transactionsProcessed": 27,
-    "successfulCalculations": 26,
-    "grossBaseAmountMinor": 602229,
-    "totalTaxCollectedMinor": 95737,
-    "totalPayableMinor": 697966,
-    "averageEffectiveRateBps": 1590
+    "transactionsProcessed": 29,
+    "successfulCalculations": 28,
+    "grossBaseAmountMinor": 622229,
+    "totalTaxCollectedMinor": 96937,
+    "totalPayableMinor": 719166,
+    "averageEffectiveRateBps": 1558
   },
   "byCategory": [
     {
@@ -39,18 +39,18 @@
       "effectiveRateBps": 1700
     },
     {
+      "productCategory": "medicine",
+      "transactions": 2,
+      "baseAmountMinor": 16400,
+      "taxAmountMinor": 1968,
+      "effectiveRateBps": 1200
+    },
+    {
       "productCategory": "food",
       "transactions": 3,
       "baseAmountMinor": 15440,
       "taxAmountMinor": 1081,
       "effectiveRateBps": 700
-    },
-    {
-      "productCategory": "medicine",
-      "transactions": 1,
-      "baseAmountMinor": 6400,
-      "taxAmountMinor": 768,
-      "effectiveRateBps": 1200
     },
     {
       "productCategory": "unicorns",
@@ -61,8 +61,8 @@
     },
     {
       "productCategory": "education",
-      "transactions": 1,
-      "baseAmountMinor": 500,
+      "transactions": 2,
+      "baseAmountMinor": 10500,
       "taxAmountMinor": 0,
       "effectiveRateBps": 0
     },
@@ -77,8 +77,8 @@
   "byTaxType": [
     {
       "taxType": "ICMS",
-      "taxAmountMinor": 70087,
-      "taxLines": 24
+      "taxAmountMinor": 71287,
+      "taxLines": 28
     },
     {
       "taxType": "PIS_COFINS_IMPORT",
@@ -94,7 +94,7 @@
   "edgeCases": {
     "zeroAmount": 2,
     "refunds": 2,
-    "exempt": 3,
+    "exempt": 4,
     "belowThreshold": 0,
     "errors": 1,
     "errorDetail": [
