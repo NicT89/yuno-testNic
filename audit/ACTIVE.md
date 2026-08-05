@@ -1,6 +1,6 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-05T10:01Z by `cursor`
+**Last updated:** 2026-08-05T10:08Z by `cursor`
 **Phase:** Submit-ready — final Cursor audit closed; F-001…F-027 RESOLVED
 **Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
@@ -12,7 +12,7 @@
 | cursor | — **CLAIM RELEASED 05:15Z** (final audit + F-027). Artifacts: `audit/findings/CURSOR-FINAL-AUDIT.md`, log `0016`, reference banner, `_archive` removed | final audit + F-027 | done |
 | cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
 | cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
-| cursor | `audit/qa/**`, `audit/ACTIVE.md`, `audit/log/0020-cursor-qa-run-002.md` | QA probe run 002 | 10:01Z |
+| cursor | — **CLAIM RELEASED 10:08Z** (`audit/qa/**`, log `0020`) | QA probe run 002 | done |
 | cursor | — **CLAIM RELEASED 09:20Z** (`audit/qa/**`, F-039–F-041, log `0019`) | QA probe run 001 | done |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
