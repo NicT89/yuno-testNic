@@ -83,11 +83,12 @@ automatically before `dev`, `build` and `test`).
 countries, every edge case, an idempotent retry, date-based rule selection
 across Brazil's 2026 ICMS change, a live rate change that leaves history
 untouched, latency percentiles, and `reports/compliance-report-<CC>.json` for
-each country.
+each country. The committed [Brazil compliance report](reports/compliance-report-BR.json)
+is available without running the demo.
 
 ```bash
 npm run dev    # API on http://localhost:3000
-npm test       # 35 accuracy, versioning and immutability checks
+npm test       # 37 accuracy, reporting, versioning and immutability checks
 ```
 
 Requires **Node.js 22+** for the built-in `node:sqlite`. `db:seed` runs
@@ -176,6 +177,10 @@ curl -s "http://localhost:3000/api/tax/report?country=BR&format=csv"
 `GET /api/audit/:id` returns a single immutable record per transaction id;
 recalculating a historical transaction is a read-only operation exposed at
 `/replay`, so a transaction never accumulates conflicting audit rows.
+
+Audit-list responses include the current-page `count`, filtered `total`,
+`limit`, `offset` and `has_more`. Date-only `from`/`to` filters are inclusive
+calendar-day bounds; malformed or reversed ranges return a structured 400.
 
 Each record stores the inputs verbatim, the output, the ruleset version, the
 applied rule version ids **and** a full snapshot of those rules. The duplication

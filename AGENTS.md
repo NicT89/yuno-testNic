@@ -11,7 +11,7 @@ rubric, the locked decisions, and the cut list. This file is the short version.
 | `docs/01-GAP-ANALYSIS.md` | What this repo is missing, by points at risk |
 | `docs/02-BUILD-PLAN.md` | Ordered tasks T1-T8 with exact file paths |
 | `docs/03-SCHEMA.sql` | Bitemporal rule + audit schema, commented |
-| `docs/04-TAX-RULES.md` | The 29-rule catalogue for BR/CO/AR/CL/PE |
+| `docs/04-TAX-RULES.md` | The 30-version rule catalogue for BR/CO/AR/CL/PE |
 | `docs/05-REVIEW-CHECKLIST.md` | What Cursor audits against |
 | `docs/06-SUBMISSION.md` | **Deliverables checklist, gitignore trap, clean-clone test. Read before submitting.** |
 | `docs/12-RUBRIC-AUDIT-AGENT.md` | Brief for the Rubric Audit Agent (improves the score) |

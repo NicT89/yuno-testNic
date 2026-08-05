@@ -262,11 +262,11 @@ Say so in "Next pass" so the human can stop the loop.
 ## 9. Current state — do not re-raise these
 
 **Living snapshot. Updating it is part of shipping a pass** (section 6, step 6).
-As of 2026-08-03, verified working. If you find one broken, that is a real
+As of 2026-08-05, verified working. If you find one broken, that is a real
 regression and a top-priority finding.
 
 - 30 rule versions across BR/CO/AR/CL/PE, all with a `legalReference` or an
-  explicit illustrative note; 57 fixtures; 35 tests; p99 1.9ms over 1,000 calcs.
+  explicit illustrative note; 57 fixtures; 37 tests; p99 1.9ms over 1,000 calcs.
 - Bitemporal rules with two proven date-selection demos: Brazilian electronics
   across 2026-01-01, and Argentine PAIS across its 2024-12-23 repeal.
 - CRUD verbs over append-only storage; byte-identity of historical audit records
