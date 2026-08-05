@@ -1,57 +1,57 @@
 {
-  "lastRun": "2026-08-05T10:05:27Z",
-  "runNumber": 2,
+  "lastRun": "2026-08-05T12:03:25Z",
+  "runNumber": 3,
   "lastTier": "hourly",
   "baselineEstablished": true,
   "checks": {
     "J1.calculate": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J1.auditRead": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J1.seededAudit": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J2.countrySweep": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J3.refundSymmetry": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J4.idempotency": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J5.dateSelection": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J6.reportIntegrity": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J7.missingAmount": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J7.failureAudit": {
       "status": "fail",
-      "consecutiveFails": 15,
+      "consecutiveFails": 16,
       "firstSeen": "2026-08-05T09:14:00Z",
       "priorConsecutiveFailsFromMemory": 13,
       "reported": true,
@@ -60,26 +60,26 @@
     "J7.unknownCountry": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J7.unsupportedCurrency": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J7.nonIntegerAmount": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J7.malformedDate": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J7.unknownCategory": {
       "status": "fail",
-      "consecutiveFails": 23,
+      "consecutiveFails": 24,
       "firstSeen": "2026-08-05T09:06:17Z",
       "priorConsecutiveFailsFromMemory": 21,
       "reported": true,
@@ -88,27 +88,27 @@
     "J7.beforeRules": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J8.countryRules": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J8.onDate": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J8.asOf": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J8.versions": {
       "status": "pass",
       "consecutiveFails": 0,
-      "lastPass": "2026-08-05T10:05:27Z"
+      "lastPass": "2026-08-05T12:03:25Z"
     },
     "J9.coldStart": {
       "status": "pass",
