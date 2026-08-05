@@ -49,6 +49,10 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-039 | Date-only report ranges exclude the entire `to` day; a genuinely empty period throws 500 while formatting a null currency | 2 | `GET /api/tax/report?country=BR&from=2026-03-15&to=2026-03-15`; `lib/compliance.ts:160`; `app/api/tax/report/route.ts:31` | audit pass 003 | cursor | **RESOLVED** |
 | F-040 | Audit browsing accepts malformed/reversed ranges and page metadata omits the filtered total and continuation signal | 1 | `GET /api/audit?from=not-a-date`; `app/api/audit/route.ts:27-35` | audit pass 003 | cursor | **RESOLVED** |
 | F-041 | Production install carries three high-severity advisories through Next.js 16.2.12 (`postcss`, `sharp`) | 1 | `npm audit --omit=dev`; patched release available at Next.js 16.3.0 | audit pass 003 | cursor | **RESOLVED** |
+| F-042 | Tax-inclusive prices below a threshold are decomposed as if tax applied, then return zero tax with a reduced base/total | 25 | `POST /api/tax/calculate` with CO clothing, `amount_minor:999999`, `price_includes_tax:true`; `lib/calculator.ts:109-148` | audit pass 003 | cursor | **RESOLVED** |
+| F-043 | Rule-write `valid_from`/`valid_to` timestamps are stored raw while transaction timestamps are UTC-normalized, breaking equivalent-instant selection | 20 | `lib/validation.ts:207-212`; `lib/rules.ts:32-35` | next audit pass | cursor | **OPEN** |
+| F-044 | Anonymous 422 responses persist an audit row but omit its generated transaction id and audit URL | 2 | `app/api/tax/calculate/route.ts:79-82` versus the 400 response path | next audit pass | cursor | **OPEN** |
+| F-045 | Rule-resolution comment still describes Brazilian digital services as ICMS + ISS rather than PIS/COFINS + ISS + explicit 0% ICMS | 1 | `lib/rules.ts:74-75` | next audit pass | cursor | **OPEN** |
 
 ## Resolutions
 
@@ -559,7 +563,28 @@ the five-finding cap; this is the highest-value bounded start for pass 003.
   replacing the vulnerable transitive PostCSS and Sharp versions. Production
   `npm audit` now reports zero vulnerabilities.
 
-Verified with 37/37 tests, six targeted HTTP probes, 70/70 combination checks,
+Verified with 38/38 tests, six targeted HTTP probes, 70/70 combination checks,
 20/20 prescribed calculation edges, zero production advisories, clean
 build/typecheck and local smoke 8/8.
+
+### F-042 — RESOLVED 2026-08-05T14:19Z by `cursor`
+
+Tax-inclusive decomposition now excludes collecting rates whose thresholds are
+not met by the submitted taxable amount. The same pre-decomposition amount is
+used for the later threshold decision, avoiding circular behavior where
+removing a tax made its own rule inapplicable.
+
+Regression proof: CO clothing at 999,999 minor inclusive now returns
+base/total 999,999 and tax 0; at the 1,000,000 threshold it decomposes to base
+840,336 plus tax 159,664, preserving total 1,000,000. The suite is 38/38 and
+local smoke remains 8/8.
+
+### F-043–F-045 — OPEN 2026-08-05T14:19Z by `cursor`
+
+Independent criterion reviews completed after the fifth-change cap was reached.
+F-043 is the next pass's highest-value start: canonicalize and validate rule
+valid-time bounds, including offset-equivalent timestamps and reversed windows.
+F-044 should return the already-written audit identity on anonymous 422s.
+F-045 is a factual comment-only correction. None changes the section 5
+invariants.
 

@@ -49,6 +49,12 @@ day, and the resulting empty report then threw while formatting a null currency.
 → Normalize date-only `from` to start-of-day and `to` to end-of-day, reject
 reversed ranges, and always retain the jurisdiction currency for empty filings.
 
+**Cross edge cases; do not only test them independently.** *(2026-08-05)*
+Threshold and tax-inclusive tests each passed while their combination removed
+tax from a below-threshold sale and still returned the decomposed base.
+→ Cross every base-changing mode (inclusive price, discount, refund) with
+threshold minus/at/plus, and assert base + tax = submitted total.
+
 **Local green does not mean deployed green.** *(2026-08-03)* F-026: `getDbPath()`
 diverted to `/tmp` whenever `VERCEL` was set, and Vercel sets `VERCEL=1` at
 **build** time too, so the seed wrote 57 audit rows into the build container and
