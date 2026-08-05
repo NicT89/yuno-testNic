@@ -43,6 +43,12 @@ defects exited 0. A duplicate fixture id surfaced only as a mismatch between "57
 calculated" and 56 audit rows — the idempotency path had silently replayed it
 instead of erroring. → Assert on numbers, not on success.
 
+**Date-only bounds are not timestamp bounds.** *(2026-08-05)* Comparing
+`transaction_date <= '2026-03-15'` excluded every transaction later that same
+day, and the resulting empty report then threw while formatting a null currency.
+→ Normalize date-only `from` to start-of-day and `to` to end-of-day, reject
+reversed ranges, and always retain the jurisdiction currency for empty filings.
+
 **Local green does not mean deployed green.** *(2026-08-03)* F-026: `getDbPath()`
 diverted to `/tmp` whenever `VERCEL` was set, and Vercel sets `VERCEL=1` at
 **build** time too, so the seed wrote 57 audit rows into the build container and

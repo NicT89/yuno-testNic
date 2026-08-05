@@ -45,7 +45,10 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-035 | A rejected request reusing a successful `transaction_id` is not audited; the route returns 400 while the immutable row remains the earlier success | 20 | `lib/tax-service.ts:55`; direct local valid-then-invalid probe | audit pass 002 | cursor | **RESOLVED** |
 | F-036 | A corrected request cannot reuse the `transaction_id` from a validation failure and receives 500 `INVALID_REQUEST` | 15 | `lib/tax-service.ts:146`; direct local invalid-then-valid probe | audit pass 002 | cursor | **RESOLVED** |
 | F-037 | Zero-amount audit provenance names resolved rules while the same row's stored output names none | 20 | `lib/calculator.ts:89`; direct local response/audit comparison | audit pass 002 | cursor | **RESOLVED** |
-| F-038 | Reviewer-linked docs retain stale 29-rule/56-fixture and statutory-rate claims; README mentions but does not link the committed report | 1 | `docs/04-TAX-RULES.md:3-8`; `docs/06-SUBMISSION.md:78-79`; `README.md:85` | next audit pass | cursor | **OPEN** |
+| F-038 | Reviewer-linked docs retain stale 29-rule/56-fixture and statutory-rate claims; README mentions but does not link the committed report | 1 | `docs/04-TAX-RULES.md:3-8`; `docs/06-SUBMISSION.md:78-79`; `README.md:85` | audit pass 003 | cursor | **RESOLVED** |
+| F-039 | Date-only report ranges exclude the entire `to` day; a genuinely empty period throws 500 while formatting a null currency | 2 | `GET /api/tax/report?country=BR&from=2026-03-15&to=2026-03-15`; `lib/compliance.ts:160`; `app/api/tax/report/route.ts:31` | audit pass 003 | cursor | **RESOLVED** |
+| F-040 | Audit browsing accepts malformed/reversed ranges and page metadata omits the filtered total and continuation signal | 1 | `GET /api/audit?from=not-a-date`; `app/api/audit/route.ts:27-35` | audit pass 003 | cursor | **RESOLVED** |
+| F-041 | Production install carries three high-severity advisories through Next.js 16.2.12 (`postcss`, `sharp`) | 1 | `npm audit --omit=dev`; patched release available at Next.js 16.3.0 | audit pass 003 | cursor | **RESOLVED** |
 
 ## Resolutions
 
@@ -540,4 +543,23 @@ The scored root docs are accurate, but linked process/catalogue docs still say
 statutory despite the root disclaimer. The README mentions `reports/` without a
 direct markdown link to a committed report. Deferred because pass 002 reached
 the five-finding cap; this is the highest-value bounded start for pass 003.
+
+### F-038–F-040 — RESOLVED 2026-08-05T14:13Z by `cursor`
+
+- **F-038:** linked catalogue and submission docs now report 30 rule versions
+  and 57 fixtures, describe the working set as illustrative, explain the
+  explicit 0% ICMS anti-fallthrough row, and link the committed BR report.
+- **F-039:** shared query-bound normalization makes a date-only `to` inclusive
+  through 23:59:59.999Z and rejects malformed or reversed windows. Empty
+  periods retain the jurisdiction's currency, so both JSON and CSV return a
+  zero-valued report instead of throwing 500.
+- **F-040:** audit lists apply the same validated bounds and return filtered
+  `total` plus `has_more` alongside page count, limit and offset.
+- **F-041:** Next.js and its matching ESLint config are pinned to 16.3.0,
+  replacing the vulnerable transitive PostCSS and Sharp versions. Production
+  `npm audit` now reports zero vulnerabilities.
+
+Verified with 37/37 tests, six targeted HTTP probes, 70/70 combination checks,
+20/20 prescribed calculation edges, zero production advisories, clean
+build/typecheck and local smoke 8/8.
 
