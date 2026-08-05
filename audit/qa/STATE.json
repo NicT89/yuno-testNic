@@ -1,0 +1,173 @@
+{
+  "lastRun": "2026-08-05T09:11:13Z",
+  "runNumber": 1,
+  "lastTier": "daily",
+  "baselineEstablished": true,
+  "checks": {
+    "J1.calculate": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J1.auditRead": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J1.seededAudit": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J2.countrySweep": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J3.refundSymmetry": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J4.idempotency": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J5.dateSelection": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J6.reportIntegrity": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J7.missingAmount": {
+      "status": "fail",
+      "consecutiveFails": 1,
+      "firstSeen": "2026-08-05T09:06:17Z",
+      "reported": false,
+      "signature": "48a2df6d611d6b239bcc01ac37c08faea91b65c3f5b12f20b862080db43d0ab7"
+    },
+    "J7.unknownCountry": {
+      "status": "fail",
+      "consecutiveFails": 1,
+      "firstSeen": "2026-08-05T09:06:17Z",
+      "reported": false,
+      "signature": "ea441cbf2cb1212c41f777630959b261356f99c8704a1b35bc4388b7c8615a74"
+    },
+    "J7.unsupportedCurrency": {
+      "status": "fail",
+      "consecutiveFails": 1,
+      "firstSeen": "2026-08-05T09:06:17Z",
+      "reported": false,
+      "signature": "b166303c33be1e961f00e7f9ee6534477326dfed6978c0618ad07e3eea9e2279"
+    },
+    "J7.nonIntegerAmount": {
+      "status": "fail",
+      "consecutiveFails": 1,
+      "firstSeen": "2026-08-05T09:06:17Z",
+      "reported": false,
+      "signature": "58d034df9d391c0c82f0c341f06cf74e37b465e22983f2bfc12ca62e269b2423"
+    },
+    "J7.malformedDate": {
+      "status": "fail",
+      "consecutiveFails": 1,
+      "firstSeen": "2026-08-05T09:06:17Z",
+      "reported": false,
+      "signature": "518cdef00e4ad5b9a97499dc40c8ad5790939d12eaf4b9d8a6beff3755fcdda1"
+    },
+    "J7.unknownCategory": {
+      "status": "fail",
+      "consecutiveFails": 1,
+      "firstSeen": "2026-08-05T09:06:17Z",
+      "reported": true,
+      "signature": "baed80ebbc0f9bbcb0f7763769c5f06cef843b5c073af9272282294794330bb4"
+    },
+    "J7.beforeRules": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J8.countryRules": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J8.onDate": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J8.asOf": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J8.versions": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:06:17Z"
+    },
+    "J9.coldStart": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:07:03Z"
+    },
+    "J10.install": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.seed": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.tests": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.build": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.demo": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.typecheck": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.smoke": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:09Z"
+    },
+    "J10.gitClean": {
+      "status": "fail",
+      "consecutiveFails": 1,
+      "firstSeen": "2026-08-05T09:09:00Z",
+      "reported": false,
+      "signature": "2db59f7d3ab0213fba776b9db71cb81f28b6b70451f25f652abb5755e02ca65f"
+    },
+    "J11.mutation": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:10:06Z"
+    }
+  },
+  "suppressed": [
+    "J9.coldStartAudit404"
+  ],
+  "openIssues": [
+    "QA-001"
+  ]
+}
