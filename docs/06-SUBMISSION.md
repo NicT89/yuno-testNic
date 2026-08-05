@@ -32,41 +32,25 @@ nothing.
 
 ---
 
-## TRAP 2 — `data/yuno-tax.db` is committed and can go stale
+## TRAP 2 — `data/yuno-tax.db` must remain generated
 
-Not gitignored today, so the binary lands in the repo. That is defensible (the
-reviewer gets a working DB with no seed step), but a stale `.db` that disagrees
-with `data/tax-rules.json` is worse than no `.db` at all.
-
-**Decide one and document it in `README.md`:**
-- **A (recommended):** gitignore `data/*.db`, rely on `npm run db:seed`, which
-  already runs via your `predev` / `prebuild` / `pretest` hooks. Nothing can go
-  stale.
-- **B:** commit it, and add a CI-less guard: the demo script reseeds first, so
-  never hand-edit the DB.
+**Resolved:** `data/*.db` is gitignored and the database is not committed.
+`npm run demo` seeds first, while `predev`, `prebuild` and `pretest` keep every
+review path synchronized with `data/tax-rules.json` and
+`data/transactions.json`. Recheck with `git ls-files data/yuno-tax.db`
+returning nothing before submission.
 
 ---
 
-## TRAP 3 — Vercel cannot host the audit trail
+## TRAP 3 — Vercel audit writes are per-instance
 
-`lib/db.ts` currently opens SQLite `readOnly: true` precisely because
-serverless filesystems are ephemeral. But Requirement 2 (20 pts) is a **write**
-path: every calculation must be persisted.
-
-You cannot have both a live Vercel URL and a working audit trail on SQLite.
-
-**Recommended:** local-first submission. The README's two-command setup is the
-supported path; keep the Vercel deployment (if it stays up) as a read-only
-bonus and say so explicitly. Add this to `README.md`:
-
-> The audit trail requires durable writes, so the reviewable path is local
-> (`npm run db:seed && npm run dev`). The deployed Vercel instance serves the
-> calculation and rules endpoints read-only; swapping the repository layer to
-> Turso/libSQL or Postgres makes the write path serverless-native without
-> touching anything above `lib/db.ts`.
-
-Naming the constraint and the migration path scores better than quietly
-shipping a deployment where `GET /api/audit/:id` returns nothing.
+**Mitigated, with a documented limit:** the build seeds a populated SQLite
+database, and each Vercel instance copies it to writable `/tmp`. Audit writes,
+reads and reports work for the lifetime of that instance; seeded audit ids work
+on every instance. A newly written id can still 404 if its read lands on a
+different cold instance because `/tmp` is not shared. The live smoke test
+verifies the write/read path, while the production migration remains a shared
+Turso/libSQL or Postgres repository behind `lib/db.ts`.
 
 ---
 
@@ -155,7 +139,7 @@ Check these by hand:
 Three sentences, no more. Lead with the design decision that is hardest to get
 right, because that is what separates submissions:
 
-> Tax rules are stored append-only and bitemporally: `effectiveFrom/To`
+> Tax rules are stored append-only and bitemporally: `validFrom/validTo`
 > selects the rate that was law on the transaction date, while
 > `recordedAt/supersededAt` selects what the system believed at calculation
 > time, so editing a rate never alters a historical calculation. All money is

@@ -88,7 +88,7 @@ is available without running the demo.
 
 ```bash
 npm run dev    # API on http://localhost:3000
-npm test       # 37 accuracy, reporting, versioning and immutability checks
+npm test       # 38 accuracy, reporting, versioning and immutability checks
 ```
 
 Requires **Node.js 22+** for the built-in `node:sqlite`. `db:seed` runs

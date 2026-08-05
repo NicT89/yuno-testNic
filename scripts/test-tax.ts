@@ -242,6 +242,33 @@ ok("threshold boundaries: below is exempt, at and above are taxed", () => {
   assert.ok(at(10_000_01).taxAmountMinor > 0);
 });
 
+ok("tax-inclusive decomposition never removes tax below a threshold", () => {
+  const thresholded = [
+    r({ id: "CO:CLOTHING:IVA@v1", ruleKey: "CO:CLOTHING:IVA", version: 1, countryCode: "CO", productCategory: "clothing", taxType: "IVA", rateBps: 1900, thresholdMinor: 10_000_00 }),
+  ];
+  const inclusive = (amountMinor: number) =>
+    calculateTax(
+      input({
+        countryCode: "CO",
+        currency: "COP",
+        productCategory: "clothing",
+        amountMinor,
+        priceIncludesTax: true,
+      }),
+      thresholded,
+      { rulesetVersion: 1 },
+    );
+
+  const below = inclusive(9_999_99);
+  assert.equal(below.baseAmountMinor, 9_999_99);
+  assert.equal(below.taxAmountMinor, 0);
+  assert.equal(below.totalAmountMinor, 9_999_99);
+
+  const at = inclusive(10_000_00);
+  assert.ok(at.taxAmountMinor > 0);
+  assert.equal(at.totalAmountMinor, 10_000_00);
+});
+
 ok("refuses to invent a rate when no rule is on file", () => {
   assert.throws(
     () => calculateTax(input(), [], { rulesetVersion: 1 }),

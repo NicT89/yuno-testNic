@@ -86,9 +86,10 @@ day-limited 'Dias sin IVA' events (Ley 2155/2021), discontinued after Ley
 2277/2022. It is retained because it exercises the boundary logic. Threshold comparison uses
 the absolute value so refunds mirror the original sale exactly.
 
-## Verified reference output
+## Verified submission output
 
-From `docs/reference/DEMO_OUTPUT.md`, all confirmed by passing tests:
+From the submitted `npm run demo`, confirmed by the passing suite and committed
+country reports under [`reports/`](../reports/):
 
 ```
 BR  electronics       100.00 BRL   tax  18.00   18.00%  ICMS 18.00%

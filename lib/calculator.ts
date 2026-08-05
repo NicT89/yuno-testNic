@@ -107,7 +107,14 @@ export function calculateTax(
   // -------------------------------------------------------------------------
   let workingBase = netAmount;
   if (input.priceIncludesTax) {
-    const collecting = rules.filter((r) => !(r.treatment in NON_COLLECTING));
+    // Threshold eligibility is tested against the submitted taxable amount,
+    // before removing included tax. Testing the decomposed base is circular:
+    // a below-threshold price could be reduced by tax that is not actually due.
+    const collecting = rules.filter((r) => {
+      if (r.treatment in NON_COLLECTING) return false;
+      const thresholdAmount = r.taxableBase === "gross" ? gross : netAmount;
+      return r.thresholdMinor === 0 || Math.abs(thresholdAmount) >= r.thresholdMinor;
+    });
     const totalBps = collecting.reduce((sum, r) => sum + r.rateBps, 0);
     if (totalBps > 0) {
       const sign = workingBase < 0 ? -1 : 1;
@@ -127,11 +134,12 @@ export function calculateTax(
 
   for (const rule of rules) {
     const baseForRule = rule.taxableBase === "gross" ? gross : workingBase;
+    const thresholdAmount = rule.taxableBase === "gross" ? gross : netAmount;
 
     // Threshold check uses the absolute value so refunds mirror the original sale.
-    if (rule.thresholdMinor > 0 && Math.abs(baseForRule) < rule.thresholdMinor) {
+    if (rule.thresholdMinor > 0 && Math.abs(thresholdAmount) < rule.thresholdMinor) {
       steps.push(
-        `${rule.taxType} (${rule.id}): skipped. Amount ${formatMinor(baseForRule, input.currency)} ` +
+        `${rule.taxType} (${rule.id}): skipped. Amount ${formatMinor(thresholdAmount, input.currency)} ` +
           `is below the ${formatMinor(rule.thresholdMinor, input.currency)} ${input.currency} threshold.`,
       );
       notes.push(`Below-threshold exemption applied via ${rule.id}.`);
