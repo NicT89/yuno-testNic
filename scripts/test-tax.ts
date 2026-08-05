@@ -15,20 +15,25 @@ import { calculateTax, NoApplicableRuleError } from "../lib/calculator";
 import { resolveApplicableRules } from "../lib/rules";
 import { applyRateBps, formatMinor, toMinor } from "../lib/money";
 import { getDb, getDbPath } from "../lib/db";
+import { buildComplianceReport, formatComplianceReportCsv } from "../lib/compliance";
 import {
   countryRoundingMode,
   findCandidateRules,
   listRules,
   listVersionsOfRule,
 } from "../lib/rules-repo";
-import { getAudit } from "../lib/audit";
+import { countAudit, getAudit, listAudit } from "../lib/audit";
 import {
   auditRejectedRequest,
   calculate,
   ReplayedFailureError,
 } from "../lib/tax-service";
 import type { CalculationInput, TaxRuleVersion } from "../lib/types";
-import { toCalculationInput, ValidationError } from "../lib/validation";
+import {
+  parseDateRangeParams,
+  toCalculationInput,
+  ValidationError,
+} from "../lib/validation";
 
 assert.equal(existsSync(getDbPath()), true, "SQLite DB must exist (npm run db:seed)");
 
@@ -622,7 +627,40 @@ ok("retrying a request that failed returns the original error, not a 500", () =>
 });
 
 // =============================================================================
-section("7. Immutability is a database guarantee, not a promise");
+section("7. Reporting ranges and pagination");
+// =============================================================================
+ok("date-only ranges include the whole day and reject invalid bounds", () => {
+  assert.deepEqual(parseDateRangeParams("2026-03-15", "2026-03-15"), {
+    from: "2026-03-15T00:00:00.000Z",
+    to: "2026-03-15T23:59:59.999Z",
+  });
+  assert.throws(() => parseDateRangeParams("not-a-date", null), ValidationError);
+  assert.throws(
+    () => parseDateRangeParams("2026-12-31", "2026-01-01"),
+    ValidationError,
+  );
+});
+
+ok("empty reports and filtered audit pages remain self-describing", () => {
+  const report = buildComplianceReport(
+    "BR",
+    "1800-01-01T00:00:00.000Z",
+    "1800-12-31T23:59:59.999Z",
+  );
+  assert.equal(report.currency, "BRL");
+  assert.equal(report.totals.transactionsProcessed, 0);
+  assert.match(formatComplianceReportCsv(report), /TOTAL,0,0\.00,0\.00,0\.00%/);
+
+  const range = parseDateRangeParams("2026-03-15", "2026-03-15");
+  const filter = { countryCode: "BR", ...range };
+  const total = countAudit(filter);
+  const page = listAudit({ ...filter, limit: 2, offset: 0 });
+  assert.ok(total > 0);
+  assert.equal(page.length, Math.min(total, 2));
+});
+
+// =============================================================================
+section("8. Immutability is a database guarantee, not a promise");
 // =============================================================================
 ok("UPDATE on the audit trail is rejected by SQLite", () => {
   assert.throws(

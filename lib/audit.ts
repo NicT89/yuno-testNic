@@ -209,10 +209,10 @@ export interface ListAuditFilter {
   offset?: number;
 }
 
-export function listAudit(
-  filter: ListAuditFilter,
-  db: DatabaseSync = getDb(),
-): AuditRecord[] {
+function auditWhere(filter: ListAuditFilter): {
+  where: string;
+  params: (string | number)[];
+} {
   const clauses: string[] = [];
   const params: (string | number)[] = [];
   if (filter.countryCode) {
@@ -227,7 +227,17 @@ export function listAudit(
     clauses.push("transaction_date <= ?");
     params.push(filter.to);
   }
-  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+  return {
+    where: clauses.length ? `WHERE ${clauses.join(" AND ")}` : "",
+    params,
+  };
+}
+
+export function listAudit(
+  filter: ListAuditFilter,
+  db: DatabaseSync = getDb(),
+): AuditRecord[] {
+  const { where, params } = auditWhere(filter);
   const rows = db
     .prepare(
       `SELECT * FROM tax_calculation_audit ${where}
@@ -238,8 +248,12 @@ export function listAudit(
   return rows.map(toDomain);
 }
 
-export function countAudit(db: DatabaseSync = getDb()): number {
-  const row = db.prepare("SELECT COUNT(*) AS n FROM tax_calculation_audit").get() as
+export function countAudit(
+  filter: ListAuditFilter = {},
+  db: DatabaseSync = getDb(),
+): number {
+  const { where, params } = auditWhere(filter);
+  const row = db.prepare(`SELECT COUNT(*) AS n FROM tax_calculation_audit ${where}`).get(...params) as
     | { n: number }
     | undefined;
   return row?.n ?? 0;

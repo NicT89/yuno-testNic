@@ -11,7 +11,7 @@
 
 import type { DatabaseSync } from "node:sqlite";
 import { getDb } from "./db";
-import { formatMinor } from "./money";
+import { COUNTRY_DEFAULT_CURRENCY, formatMinor } from "./money";
 
 export interface ComplianceReport {
   disclaimer: string;
@@ -158,7 +158,9 @@ export function buildComplianceReport(
     generatedAt: new Date().toISOString(),
     countryCode,
     period: { from, to },
-    currency: currencyRow?.c ?? null,
+    // An empty filing period still belongs to a known jurisdiction and must be
+    // renderable as JSON or CSV; `null` previously made formatMinor("XXX") throw.
+    currency: currencyRow?.c ?? COUNTRY_DEFAULT_CURRENCY[countryCode] ?? null,
     totals: {
       transactionsProcessed: Number(totals.n) || 0,
       successfulCalculations: Number(totals.ok) || 0,
