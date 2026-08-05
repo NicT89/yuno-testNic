@@ -78,11 +78,17 @@ export function calculateTax(
   );
 
   // -------------------------------------------------------------------------
-  // Step 2. Short-circuit the degenerate cases before touching any rule.
+  // Step 2. Refuse uncovered transactions before short-circuiting zero amounts.
+  // A zero-value sale still needs a rule on file: otherwise returning 0 would
+  // silently hide a catalogue gap behind the degenerate amount.
   // -------------------------------------------------------------------------
+  if (rules.length === 0) {
+    throw new NoApplicableRuleError(input);
+  }
+
   if (netAmount === 0) {
     steps.push("Amount is zero: no taxable event, no tax due.");
-    return emptyResult(input, exponent, opts, "zero_amount", steps, notes, gross, discount);
+    return emptyResult(input, rules, exponent, opts, "zero_amount", steps, notes, gross, discount);
   }
 
   const isRefund = netAmount < 0;
@@ -94,12 +100,6 @@ export function calculateTax(
     steps.push("Negative amount detected: processing as a refund at the same rules.");
   }
 
-  if (rules.length === 0) {
-    // Deliberate choice: no matching rule is an ERROR, not a silent 0%.
-    // Silently returning 0% is how merchants end up under-remitting.
-    throw new NoApplicableRuleError(input);
-  }
-
   // -------------------------------------------------------------------------
   // Step 3. Handle tax-inclusive pricing by decomposing the gross price first.
   // If the submitted price already contains tax, the base is
@@ -107,7 +107,14 @@ export function calculateTax(
   // -------------------------------------------------------------------------
   let workingBase = netAmount;
   if (input.priceIncludesTax) {
-    const collecting = rules.filter((r) => !(r.treatment in NON_COLLECTING));
+    // Threshold eligibility is tested against the submitted taxable amount,
+    // before removing included tax. Testing the decomposed base is circular:
+    // a below-threshold price could be reduced by tax that is not actually due.
+    const collecting = rules.filter((r) => {
+      if (r.treatment in NON_COLLECTING) return false;
+      const thresholdAmount = r.taxableBase === "gross" ? gross : netAmount;
+      return r.thresholdMinor === 0 || Math.abs(thresholdAmount) >= r.thresholdMinor;
+    });
     const totalBps = collecting.reduce((sum, r) => sum + r.rateBps, 0);
     if (totalBps > 0) {
       const sign = workingBase < 0 ? -1 : 1;
@@ -127,11 +134,12 @@ export function calculateTax(
 
   for (const rule of rules) {
     const baseForRule = rule.taxableBase === "gross" ? gross : workingBase;
+    const thresholdAmount = rule.taxableBase === "gross" ? gross : netAmount;
 
     // Threshold check uses the absolute value so refunds mirror the original sale.
-    if (rule.thresholdMinor > 0 && Math.abs(baseForRule) < rule.thresholdMinor) {
+    if (rule.thresholdMinor > 0 && Math.abs(thresholdAmount) < rule.thresholdMinor) {
       steps.push(
-        `${rule.taxType} (${rule.id}): skipped. Amount ${formatMinor(baseForRule, input.currency)} ` +
+        `${rule.taxType} (${rule.id}): skipped. Amount ${formatMinor(thresholdAmount, input.currency)} ` +
           `is below the ${formatMinor(rule.thresholdMinor, input.currency)} ${input.currency} threshold.`,
       );
       notes.push(`Below-threshold exemption applied via ${rule.id}.`);
@@ -249,6 +257,7 @@ function line(
 
 function emptyResult(
   input: CalculationInput,
+  rules: TaxRuleVersion[],
   exponent: number,
   opts: CalculateOptions,
   status: CalculationResult["status"],
@@ -257,6 +266,14 @@ function emptyResult(
   gross: number,
   discount: number,
 ): CalculationResult {
+  const taxLines = rules.map((rule) =>
+    line(
+      rule,
+      0,
+      0,
+      `Zero taxable amount; ${rule.id} matched, so ${rule.taxType} due is ${formatMinor(0, input.currency)}.`,
+    ),
+  );
   return {
     status,
     currency: input.currency,
@@ -267,13 +284,15 @@ function emptyResult(
     taxAmountMinor: 0,
     totalAmountMinor: 0,
     effectiveRateBps: 0,
-    taxLines: [],
+    taxLines,
     rulesetVersion: opts.rulesetVersion,
     engineVersion: ENGINE_VERSION,
     breakdown: {
-      summary: "Zero-amount transaction: no taxable event.",
+      summary:
+        `Zero-amount transaction: no taxable event; matched ` +
+        `${taxLines.map((taxLine) => taxLine.ruleVersionId).join(", ")}.`,
       steps,
-      appliedRuleVersionIds: [],
+      appliedRuleVersionIds: taxLines.map((taxLine) => taxLine.ruleVersionId),
       notes,
     },
   };

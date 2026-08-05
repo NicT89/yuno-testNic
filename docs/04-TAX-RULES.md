@@ -1,13 +1,13 @@
 # 04 — Tax rule catalogue (BR / CO / AR / CL / PE)
 
-29 rule versions. Machine-readable source of truth:
-`docs/reference/src/seed/rules.ts` — port it into `data/tax-rules.json`.
+30 rule versions. Machine-readable source of truth:
+[`data/tax-rules.json`](../data/tax-rules.json).
 
-Rates reflect published statutory rates for LATAM digital and cross-border
-commerce, 2025-2026. Each rule carries a `legalReference` so an auditor can
-trace it. They are a defensible working set, not legal advice: the design goal
-is that finance can correct any rate through the API without a deploy and
-without rewriting history.
+Rates, thresholds and effective dates are an illustrative working set; some
+were invented or approximated for this exercise. Each rule carries either a
+traceable `legalReference` or an explicit illustrative note. They are not legal
+advice: the design goal is that finance can correct any rate through the API
+without a deploy and without rewriting history.
 
 ## Summary
 
@@ -52,13 +52,15 @@ which exercises the fallback path.
 
 ## Multi-tax stacking
 
-Two cases, both real:
+Two modelled cases:
 
 - **Brazil digital services:** federal PIS/COFINS-Importacao 9.25% (priority 5) +
   municipal ISS 5% (priority 20) = 14.25% effective. `Lei 10.865/2004` and
-  `LC 116/2003`. ICMS is deliberately absent: STF ADI 1945 and ADI 5659 (2021)
-  held software is subject to ISS, not ICMS, and the two are mutually exclusive
-  on digital goods. ICMS still applies to Brazilian physical goods.
+  `LC 116/2003`. An explicit 0% ICMS exemption records that STF ADI 1945 and
+  ADI 5659 (2021) held software subject to ISS rather than ICMS; the explicit
+  row prevents the country wildcard from charging ICMS. ICMS still applies to
+  Brazilian physical goods. The legal structure is researched; the working
+  rates remain illustrative.
 - **Argentina B2C digital services:** IVA 21% (priority 100) + Impuesto PAIS 8%
   (priority 20) = 29% effective, **for transactions dated before 2024-12-23**.
   `RG 4240/2018` and `Ley 27.541`. PAIS was not extended past December 2024, so
@@ -84,9 +86,10 @@ day-limited 'Dias sin IVA' events (Ley 2155/2021), discontinued after Ley
 2277/2022. It is retained because it exercises the boundary logic. Threshold comparison uses
 the absolute value so refunds mirror the original sale exactly.
 
-## Verified reference output
+## Verified submission output
 
-From `docs/reference/DEMO_OUTPUT.md`, all confirmed by passing tests:
+From the submitted `npm run demo`, confirmed by the passing suite and committed
+country reports under [`reports/`](../reports/):
 
 ```
 BR  electronics       100.00 BRL   tax  18.00   18.00%  ICMS 18.00%

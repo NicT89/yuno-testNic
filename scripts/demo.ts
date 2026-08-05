@@ -49,12 +49,14 @@ function money(minor: number, currency: string) {
 }
 
 // -----------------------------------------------------------------------------
-console.log(rule("1. CALCULATION MATRIX — five countries, nine categories"));
+console.log(rule("1. CALCULATION MATRIX — five countries, seven categories"));
 // -----------------------------------------------------------------------------
 const matrix: Array<[string, string, Partial<CalculationInput>?]> = [
   ["BR", "electronics"],
   ["BR", "food"],
   ["BR", "books"],
+  ["BR", "medicine"],
+  ["BR", "education"],
   ["BR", "digital_services"],
   ["CO", "electronics"],
   ["CO", "food"],

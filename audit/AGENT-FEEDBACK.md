@@ -43,6 +43,18 @@ defects exited 0. A duplicate fixture id surfaced only as a mismatch between "57
 calculated" and 56 audit rows — the idempotency path had silently replayed it
 instead of erroring. → Assert on numbers, not on success.
 
+**Date-only bounds are not timestamp bounds.** *(2026-08-05)* Comparing
+`transaction_date <= '2026-03-15'` excluded every transaction later that same
+day, and the resulting empty report then threw while formatting a null currency.
+→ Normalize date-only `from` to start-of-day and `to` to end-of-day, reject
+reversed ranges, and always retain the jurisdiction currency for empty filings.
+
+**Cross edge cases; do not only test them independently.** *(2026-08-05)*
+Threshold and tax-inclusive tests each passed while their combination removed
+tax from a below-threshold sale and still returned the decomposed base.
+→ Cross every base-changing mode (inclusive price, discount, refund) with
+threshold minus/at/plus, and assert base + tax = submitted total.
+
 **Local green does not mean deployed green.** *(2026-08-03)* F-026: `getDbPath()`
 diverted to `/tmp` whenever `VERCEL` was set, and Vercel sets `VERCEL=1` at
 **build** time too, so the seed wrote 57 audit rows into the build container and
@@ -62,6 +74,31 @@ domain-accuracy finding so far (F-023/024/025). Each rule was load-bearing for a
 demo, so deleting it cost points. Relabelling it honestly as illustrative cost
 nothing. → An invented rate is fine under the brief; a real citation that says
 something else is not.
+
+**Cross edge cases; do not test them only in isolation.** *(2026-08-03)* Zero
+amount and no-rule each passed alone, but together an uncovered transaction
+returned 200/0% because the zero short circuit ran first. Offset timestamps also
+passed generic ISO validation while selecting the wrong date window through
+lexical comparison. → Combine degenerate amounts with missing coverage, and
+canonicalize every accepted external timestamp before bitemporal comparison.
+
+**Attack every column protected by an immutability claim.** *(2026-08-03)* The
+rule trigger rejected rate updates, so the suite passed, but accepted in-place
+changes to `treatment`, thresholds, scope and notes. → Define the one permitted
+state transition (null `superseded_at` to one timestamp) and reject any UPDATE
+whose full old/new row differs elsewhere.
+
+**Do not give pre-validation failures the business transaction id.**
+*(2026-08-04)* A rejected body stored under the caller's `transaction_id`
+either hid behind an existing success or reserved that id so a corrected retry
+returned 500. → Give every pre-calculation rejection a generated audit identity,
+keep the requested id in the raw payload, and return the generated audit URL.
+
+**SQLite result rows may have a null prototype.** *(2026-08-04)* The first
+recursive response serializer handled plain domain objects but skipped nested
+`node:sqlite` rows, leaving report keys camelCase. → Transform enumerable keys
+on JSON-shaped objects regardless of prototype; verify recursively across every
+endpoint, not just the calculation response.
 
 ## Dead ends — do not repeat
 

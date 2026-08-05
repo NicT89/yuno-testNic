@@ -17,8 +17,8 @@ A reviewer calling `POST /api/tax/calculate` with `country_code: "BR"` currently
 gets nothing back. This is the single largest point loss in the repo.
 
 **Fix:** replace the rule fixtures wholesale from
-`docs/04-TAX-RULES.md` / `docs/reference/src/seed/rules.ts` (29 rule versions,
-each with a `legal_reference`).
+`docs/04-TAX-RULES.md` / `data/tax-rules.json` (30 rule versions, each with a
+`legalReference` or explicit illustrative note).
 
 ---
 
@@ -120,8 +120,8 @@ Requirement 1 names these explicitly. Each needs a fixture and a test.
 - currency rounding where the currency has no minor unit (CLP)
 - unknown country/category returning 422, not 0%
 
-Reference fixtures: `docs/reference/src/seed/transactions.ts` (56 transactions,
-each annotated with what it exercises).
+Submission fixtures: `data/transactions.json` (57 transactions, each annotated
+with what it exercises).
 
 ---
 

@@ -45,8 +45,8 @@ if [[ "$CODE" != "200" ]]; then
   TXN_ID=""
 else
   TXN_ID=$(python3 -c "import json; print(json.load(open('/tmp/yuno_calc.json')).get('transaction_id',''))" 2>/dev/null || true)
-  LINES=$(python3 -c "import json; d=json.load(open('/tmp/yuno_calc.json')); print(len(d.get('taxLines') or []))" 2>/dev/null || echo 0)
-  TAX=$(python3 -c "import json; d=json.load(open('/tmp/yuno_calc.json')); print(d.get('taxAmountMinor',0))" 2>/dev/null || echo 0)
+  LINES=$(python3 -c "import json; d=json.load(open('/tmp/yuno_calc.json')); print(len(d.get('tax_lines') or d.get('taxLines') or []))" 2>/dev/null || echo 0)
+  TAX=$(python3 -c "import json; d=json.load(open('/tmp/yuno_calc.json')); print(d.get('tax_amount_minor',d.get('taxAmountMinor',0)))" 2>/dev/null || echo 0)
   if [[ -n "$TXN_ID" && "$LINES" -ge 1 && "$TAX" != "0" ]]; then
     pass "2 POST /api/tax/calculate BR digital_services -> txn=$TXN_ID taxLines=$LINES taxAmountMinor=$TAX"
   else
@@ -83,9 +83,9 @@ CODE2=$(curl -s -o /tmp/yuno_idem2.json -w "%{http_code}" \
   -H "Content-Type: application/json" \
   -d "{\"country_code\":\"CO\",\"product_category\":\"electronics\",\"amount\":50,\"currency\":\"COP\",\"transaction_id\":\"$IDEM\",\"transaction_date\":\"2026-02-01\"}" \
   || true)
-TAX1=$(python3 -c "import json; print(json.load(open('/tmp/yuno_idem1.json')).get('taxAmountMinor'))" 2>/dev/null || echo "")
-TAX2=$(python3 -c "import json; print(json.load(open('/tmp/yuno_idem2.json')).get('taxAmountMinor'))" 2>/dev/null || echo "")
-REPLAY=$(python3 -c "import json; print(json.load(open('/tmp/yuno_idem2.json')).get('replayed_from_idempotency_key'))" 2>/dev/null || echo "")
+TAX1=$(python3 -c "import json; d=json.load(open('/tmp/yuno_idem1.json')); print(d.get('tax_amount_minor',d.get('taxAmountMinor')))" 2>/dev/null || echo "")
+TAX2=$(python3 -c "import json; d=json.load(open('/tmp/yuno_idem2.json')); print(d.get('tax_amount_minor',d.get('taxAmountMinor')))" 2>/dev/null || echo "")
+REPLAY=$(python3 -c "import json; d=json.load(open('/tmp/yuno_idem2.json')); print(d.get('replayed',d.get('replayed_from_idempotency_key')))" 2>/dev/null || echo "")
 if [[ "$CODE1" == "200" && "$CODE2" == "200" && "$TAX1" == "$TAX2" && "$TAX1" != "" ]]; then
   pass "4 idempotent transaction_id=$IDEM both 200 identical tax=$TAX1 replayed=$REPLAY (F-015)"
 else
@@ -103,10 +103,10 @@ CODE_B=$(curl -s -o /tmp/yuno_br_b.json -w "%{http_code}" \
   -H "Content-Type: application/json" \
   -d '{"country_code":"BR","product_category":"electronics","amount":100,"currency":"BRL","transaction_date":"2026-03-15"}' \
   || true)
-IDS_A=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_a.json')); print(','.join(d.get('breakdown',{}).get('appliedRuleVersionIds') or [x.get('ruleVersionId','') for x in d.get('taxLines',[])]))" 2>/dev/null || echo "")
-IDS_B=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_b.json')); print(','.join(d.get('breakdown',{}).get('appliedRuleVersionIds') or [x.get('ruleVersionId','') for x in d.get('taxLines',[])]))" 2>/dev/null || echo "")
-VER_A=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_a.json')); print(d.get('taxLines',[{}])[0].get('ruleVersion'))" 2>/dev/null || echo "")
-VER_B=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_b.json')); print(d.get('taxLines',[{}])[0].get('ruleVersion'))" 2>/dev/null || echo "")
+IDS_A=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_a.json')); b=d.get('breakdown',{}); lines=d.get('tax_lines') or d.get('taxLines') or []; print(','.join(b.get('applied_rule_version_ids') or b.get('appliedRuleVersionIds') or [x.get('rule_version_id',x.get('ruleVersionId','')) for x in lines]))" 2>/dev/null || echo "")
+IDS_B=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_b.json')); b=d.get('breakdown',{}); lines=d.get('tax_lines') or d.get('taxLines') or []; print(','.join(b.get('applied_rule_version_ids') or b.get('appliedRuleVersionIds') or [x.get('rule_version_id',x.get('ruleVersionId','')) for x in lines]))" 2>/dev/null || echo "")
+VER_A=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_a.json')); lines=d.get('tax_lines') or d.get('taxLines') or [{}]; print(lines[0].get('rule_version',lines[0].get('ruleVersion')))" 2>/dev/null || echo "")
+VER_B=$(python3 -c "import json; d=json.load(open('/tmp/yuno_br_b.json')); lines=d.get('tax_lines') or d.get('taxLines') or [{}]; print(lines[0].get('rule_version',lines[0].get('ruleVersion')))" 2>/dev/null || echo "")
 if [[ "$CODE_A" == "200" && "$CODE_B" == "200" && "$IDS_A" != "$IDS_B" ]]; then
   pass "5 BR electronics 2025-11-15 vs 2026-03-15 different rule versions ($IDS_A vs $IDS_B)"
 elif [[ "$CODE_A" == "200" && "$CODE_B" == "200" && "$VER_A" != "$VER_B" ]]; then
@@ -133,8 +133,8 @@ else
   python3 - <<'PY' && pass "7 GET /api/tax/report BR -> non-zero tax + edgeCases.refunds>0" || fail "7 report missing totalTaxCollectedMinor>0 or edgeCases.refunds>0 (reseed may be pending)"
 import json
 d=json.load(open("/tmp/yuno_report.json"))
-tax=d.get("totals",{}).get("totalTaxCollectedMinor",0)
-refunds=(d.get("edgeCases") or {}).get("refunds",0)
+tax=d.get("totals",{}).get("total_tax_collected_minor",d.get("totals",{}).get("totalTaxCollectedMinor",0))
+refunds=(d.get("edge_cases") or d.get("edgeCases") or {}).get("refunds",0)
 assert tax and int(tax)>0 and int(refunds)>0, (tax, refunds)
 PY
 fi

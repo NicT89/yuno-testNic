@@ -1,6 +1,10 @@
-import { listAudit } from "@/lib/audit";
+import { countAudit, listAudit } from "@/lib/audit";
 import { jsonError, jsonOk } from "@/lib/http";
-import { parseCountryParam, ValidationError } from "@/lib/validation";
+import {
+  parseCountryParam,
+  parseDateRangeParams,
+  ValidationError,
+} from "@/lib/validation";
 
 /**
  * GET /api/audit?country=BR&from=2026-01-01&to=2026-12-31&limit=50&offset=0
@@ -24,15 +28,29 @@ export async function GET(request: Request) {
       throw new ValidationError("`offset` must be a non-negative integer.", "offset");
     }
 
-    const records = listAudit({
-      countryCode: parseCountryParam(searchParams.get("country")),
-      from: searchParams.get("from") ?? undefined,
-      to: searchParams.get("to") ?? undefined,
+    const countryCode = parseCountryParam(searchParams.get("country"));
+    const { from, to } = parseDateRangeParams(
+      searchParams.get("from"),
+      searchParams.get("to"),
+    );
+    const filter = {
+      countryCode,
+      from,
+      to,
       limit,
       offset,
-    });
+    };
+    const records = listAudit(filter);
+    const total = countAudit(filter);
 
-    return jsonOk({ count: records.length, limit, offset, records });
+    return jsonOk({
+      count: records.length,
+      total,
+      limit,
+      offset,
+      has_more: offset + records.length < total,
+      records,
+    });
   } catch (err) {
     if (err instanceof ValidationError) {
       return jsonError(400, err.code, err.message, err.field ? { field: err.field } : undefined);

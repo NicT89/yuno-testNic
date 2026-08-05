@@ -15,15 +15,25 @@ import { calculateTax, NoApplicableRuleError } from "../lib/calculator";
 import { resolveApplicableRules } from "../lib/rules";
 import { applyRateBps, formatMinor, toMinor } from "../lib/money";
 import { getDb, getDbPath } from "../lib/db";
+import { buildComplianceReport, formatComplianceReportCsv } from "../lib/compliance";
 import {
   countryRoundingMode,
   findCandidateRules,
   listRules,
   listVersionsOfRule,
 } from "../lib/rules-repo";
-import { getAudit } from "../lib/audit";
-import { calculate, ReplayedFailureError } from "../lib/tax-service";
+import { countAudit, getAudit, listAudit } from "../lib/audit";
+import {
+  auditRejectedRequest,
+  calculate,
+  ReplayedFailureError,
+} from "../lib/tax-service";
 import type { CalculationInput, TaxRuleVersion } from "../lib/types";
+import {
+  parseDateRangeParams,
+  toCalculationInput,
+  ValidationError,
+} from "../lib/validation";
 
 assert.equal(existsSync(getDbPath()), true, "SQLite DB must exist (npm run db:seed)");
 
@@ -159,6 +169,13 @@ ok("zero amount is not a taxable event", () => {
   const res = calculateTax(input({ amountMinor: 0 }), standard, { rulesetVersion: 1 });
   assert.equal(res.status, "zero_amount");
   assert.equal(res.taxAmountMinor, 0);
+  assert.deepEqual(res.taxLines.map((line) => line.ruleVersionId), ["BR:*:ICMS@v1"]);
+  assert.deepEqual(res.breakdown.appliedRuleVersionIds, ["BR:*:ICMS@v1"]);
+  assert.throws(
+    () => calculateTax(input({ amountMinor: 0 }), [], { rulesetVersion: 1 }),
+    NoApplicableRuleError,
+    "an uncovered zero-value sale must not hide a catalogue gap",
+  );
 });
 
 ok("negative amount is a refund with mirrored tax", () => {
@@ -168,10 +185,40 @@ ok("negative amount is a refund with mirrored tax", () => {
   assert.equal(res.totalAmountMinor, -117_00);
 });
 
-ok("discount reduces the net taxable base", () => {
+ok("discount reduces the net base and cannot turn a sale into a refund", () => {
   const res = calculateTax(input({ amountMinor: 250_00, discountMinor: 50_00 }), standard, { rulesetVersion: 1 });
   assert.equal(res.baseAmountMinor, 200_00);
   assert.equal(res.taxAmountMinor, 34_00);
+
+  assert.throws(
+    () =>
+      toCalculationInput({
+        country_code: "BR",
+        product_category: "electronics",
+        amount_minor: 100_00,
+        discount_minor: 100_01,
+      }),
+    ValidationError,
+  );
+
+  const maxExact = Math.floor(Number.MAX_SAFE_INTEGER / 10_000);
+  assert.equal(
+    toCalculationInput({
+      country_code: "BR",
+      product_category: "electronics",
+      amount_minor: maxExact,
+    }).amountMinor,
+    maxExact,
+  );
+  assert.throws(
+    () =>
+      toCalculationInput({
+        country_code: "BR",
+        product_category: "electronics",
+        amount_minor: maxExact + 1,
+      }),
+    ValidationError,
+  );
 });
 
 ok("gross-based rules ignore the discount", () => {
@@ -193,6 +240,33 @@ ok("threshold boundaries: below is exempt, at and above are taxed", () => {
   assert.equal(at(9_999_99).taxAmountMinor, 0);
   assert.equal(at(10_000_00).taxAmountMinor, 1_900_00);
   assert.ok(at(10_000_01).taxAmountMinor > 0);
+});
+
+ok("tax-inclusive decomposition never removes tax below a threshold", () => {
+  const thresholded = [
+    r({ id: "CO:CLOTHING:IVA@v1", ruleKey: "CO:CLOTHING:IVA", version: 1, countryCode: "CO", productCategory: "clothing", taxType: "IVA", rateBps: 1900, thresholdMinor: 10_000_00 }),
+  ];
+  const inclusive = (amountMinor: number) =>
+    calculateTax(
+      input({
+        countryCode: "CO",
+        currency: "COP",
+        productCategory: "clothing",
+        amountMinor,
+        priceIncludesTax: true,
+      }),
+      thresholded,
+      { rulesetVersion: 1 },
+    );
+
+  const below = inclusive(9_999_99);
+  assert.equal(below.baseAmountMinor, 9_999_99);
+  assert.equal(below.taxAmountMinor, 0);
+  assert.equal(below.totalAmountMinor, 9_999_99);
+
+  const at = inclusive(10_000_00);
+  assert.ok(at.taxAmountMinor > 0);
+  assert.equal(at.totalAmountMinor, 10_000_00);
 });
 
 ok("refuses to invent a rate when no rule is on file", () => {
@@ -232,6 +306,15 @@ section("4. Rule resolution: two independent time axes");
   ok("VALID TIME: picks the rule that was law on the transaction date", () => {
     assert.equal(resolveApplicableRules([v1, v2], q("2025-12-31"))[0].id, "BR:E:ICMS@v1");
     assert.equal(resolveApplicableRules([v1, v2], q("2026-01-02"))[0].id, "BR:E:ICMS@v2");
+
+    const normalized = toCalculationInput({
+      country_code: "BR",
+      product_category: "electronics",
+      amount_minor: 100_00,
+      transaction_date: "2025-12-31T23:00:00-03:00",
+    }).transactionDate;
+    assert.equal(normalized, "2026-01-01T02:00:00.000Z");
+    assert.equal(resolveApplicableRules([v1, v2], q(normalized))[0].id, "BR:E:ICMS@v2");
   });
 
   ok("SYSTEM TIME: a rule recorded later is invisible to an earlier as-of instant", () => {
@@ -287,9 +370,7 @@ ok("every seeded rule carries a legal reference or an explanatory note", () => {
   const undocumented = listRules({ includeSuperseded: true }).filter(
     (rule) => !rule.legalReference && !rule.notes,
   );
-  // Rates that mirror an already-cited rule may lean on that citation; anything
-  // else must tell an auditor where it came from.
-  assert.ok(undocumented.length <= 6, `too many undocumented rules: ${undocumented.length}`);
+  assert.deepEqual(undocumented, []);
 });
 
 ok("BR:ELECTRONICS:ICMS resolves @v1 on 2025-12-31 and @v2 on 2026-01-02", () => {
@@ -465,6 +546,53 @@ ok("a failed calculation is audited too, and still raises the error", () => {
   const record = getAudit(failedId)!;
   assert.equal(record.status, "error");
   assert.equal(record.error?.code, "NO_APPLICABLE_RULE");
+
+  const validationId = `${auditedId}_validation`;
+  const validationRecord = auditRejectedRequest({
+    transactionId: validationId,
+    rawRequest: {
+      transaction_id: validationId,
+      country_code: "BR",
+      amount_minor: 10_00,
+    },
+    code: "INVALID_REQUEST",
+    message: "product_category is required",
+  });
+  assert.notEqual(validationRecord.transactionId, validationId);
+  assert.equal(validationRecord.status, "error");
+  assert.equal(validationRecord.error?.code, "INVALID_REQUEST");
+  assert.equal(validationRecord.input.raw instanceof Object, true);
+
+  // A validation failure must not reserve the caller's idempotency identity:
+  // after fixing the body, the caller can calculate under the requested id.
+  const corrected = calculate({
+    transactionId: validationId,
+    input: {
+      amountMinor: 100_00,
+      discountMinor: 0,
+      currency: "BRL",
+      countryCode: "BR",
+      productCategory: "electronics",
+      customerType: "individual",
+      transactionDate: "2026-03-15T12:00:00.000Z",
+      priceIncludesTax: false,
+    },
+    rawRequest: {},
+  });
+  assert.equal(corrected.replayed, false);
+  assert.equal(corrected.transactionId, validationId);
+
+  // Reusing a successful transaction id for an invalid request still appends
+  // a distinct rejection row; it must never return the unrelated success row.
+  const collision = auditRejectedRequest({
+    transactionId: auditedId,
+    rawRequest: { transaction_id: auditedId, country_code: "BR" },
+    code: "INVALID_REQUEST",
+    message: "product_category is required",
+  });
+  assert.notEqual(collision.transactionId, auditedId);
+  assert.equal(collision.status, "error");
+  assert.equal(getAudit(auditedId)?.status, "calculated");
 });
 
 // F-015 regression: a retry with a caller-supplied transaction_id used to hit
@@ -526,7 +654,40 @@ ok("retrying a request that failed returns the original error, not a 500", () =>
 });
 
 // =============================================================================
-section("7. Immutability is a database guarantee, not a promise");
+section("7. Reporting ranges and pagination");
+// =============================================================================
+ok("date-only ranges include the whole day and reject invalid bounds", () => {
+  assert.deepEqual(parseDateRangeParams("2026-03-15", "2026-03-15"), {
+    from: "2026-03-15T00:00:00.000Z",
+    to: "2026-03-15T23:59:59.999Z",
+  });
+  assert.throws(() => parseDateRangeParams("not-a-date", null), ValidationError);
+  assert.throws(
+    () => parseDateRangeParams("2026-12-31", "2026-01-01"),
+    ValidationError,
+  );
+});
+
+ok("empty reports and filtered audit pages remain self-describing", () => {
+  const report = buildComplianceReport(
+    "BR",
+    "1800-01-01T00:00:00.000Z",
+    "1800-12-31T23:59:59.999Z",
+  );
+  assert.equal(report.currency, "BRL");
+  assert.equal(report.totals.transactionsProcessed, 0);
+  assert.match(formatComplianceReportCsv(report), /TOTAL,0,0\.00,0\.00,0\.00%/);
+
+  const range = parseDateRangeParams("2026-03-15", "2026-03-15");
+  const filter = { countryCode: "BR", ...range };
+  const total = countAudit(filter);
+  const page = listAudit({ ...filter, limit: 2, offset: 0 });
+  assert.ok(total > 0);
+  assert.equal(page.length, Math.min(total, 2));
+});
+
+// =============================================================================
+section("8. Immutability is a database guarantee, not a promise");
 // =============================================================================
 ok("UPDATE on the audit trail is rejected by SQLite", () => {
   assert.throws(
@@ -539,9 +700,13 @@ ok("DELETE from the audit trail is rejected by SQLite", () => {
   assert.throws(() => getDb().exec("DELETE FROM tax_calculation_audit"), /append-only/);
 });
 
-ok("rewriting a rule's rate in place is rejected by SQLite", () => {
+ok("rewriting any rule-version field in place is rejected by SQLite", () => {
   assert.throws(
     () => getDb().exec("UPDATE tax_rule_versions SET rate_bps = 1 WHERE id = 'BR:*:ICMS@v1'"),
+    /append-only/,
+  );
+  assert.throws(
+    () => getDb().exec("UPDATE tax_rule_versions SET treatment = 'exempt' WHERE id = 'BR:*:ICMS@v1'"),
     /append-only/,
   );
 });

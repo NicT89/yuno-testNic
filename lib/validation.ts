@@ -23,6 +23,7 @@ export class ValidationError extends Error {
 }
 
 const CUSTOMER_TYPES: CustomerType[] = ["individual", "business"];
+const MAX_AMOUNT_MINOR = Math.floor(Number.MAX_SAFE_INTEGER / 10_000);
 
 function requireString(
   body: Record<string, unknown>,
@@ -51,9 +52,9 @@ function optionalBoolean(
 function optionalInteger(body: Record<string, unknown>, field: string): number | undefined {
   const value = body[field];
   if (value === undefined || value === null) return undefined;
-  if (typeof value !== "number" || !Number.isInteger(value)) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value)) {
     throw new ValidationError(
-      `\`${field}\` must be an integer number of minor currency units.`,
+      `\`${field}\` must be a safe integer number of minor currency units.`,
       field,
     );
   }
@@ -118,10 +119,22 @@ export function toCalculationInput(body: Record<string, unknown>): CalculationIn
       "amount",
     );
   }
+  if (Math.abs(amountMinor) > MAX_AMOUNT_MINOR) {
+    throw new ValidationError(
+      `\`amount\` exceeds the largest value that can be taxed exactly (${MAX_AMOUNT_MINOR} minor units).`,
+      body.amount_minor !== undefined ? "amount_minor" : "amount",
+    );
+  }
 
   const discountMinor = resolveAmount(body, "discount_minor", "discount", currency) ?? 0;
   if (discountMinor < 0) {
     throw new ValidationError("`discount` must not be negative.", "discount");
+  }
+  if (discountMinor > Math.max(amountMinor, 0)) {
+    throw new ValidationError(
+      "`discount` must not exceed a non-negative sale amount; submit a negative amount for a refund.",
+      body.discount_minor !== undefined ? "discount_minor" : "discount",
+    );
   }
 
   const customerType = (body.customer_type ?? "individual") as CustomerType;
@@ -144,7 +157,10 @@ export function toCalculationInput(body: Record<string, unknown>): CalculationIn
         "transaction_date",
       );
     }
-    transactionDate = body.transaction_date;
+    // Rule windows are stored as canonical ISO strings and compared
+    // lexicographically. Normalize offsets so equivalent instants cannot select
+    // different versions (for example 23:00-03:00 is 02:00Z the next day).
+    transactionDate = parsed.toISOString();
   }
 
   return {
@@ -271,4 +287,44 @@ export function parseCountryParam(value: string | null): string | undefined {
     );
   }
   return country;
+}
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+function normalizeDateBoundary(value: string, field: "from" | "to"): string {
+  const dateOnly = DATE_ONLY.test(value);
+  const candidate = dateOnly
+    ? `${value}T${field === "from" ? "00:00:00.000" : "23:59:59.999"}Z`
+    : value;
+  const parsed = new Date(candidate);
+
+  // Date.parse normalizes impossible calendar dates such as February 30, so a
+  // date-only filter also has to round-trip before it is safe to query.
+  if (
+    Number.isNaN(parsed.getTime()) ||
+    (dateOnly && parsed.toISOString().slice(0, 10) !== value)
+  ) {
+    throw new ValidationError(`\`${field}\` must be a valid ISO-8601 date or timestamp.`, field);
+  }
+
+  return parsed.toISOString();
+}
+
+/**
+ * Normalize report and audit-list filters to UTC. A date-only `to` includes
+ * that whole calendar day; comparing a timestamp column to the bare date would
+ * otherwise silently exclude every transaction after midnight.
+ */
+export function parseDateRangeParams(
+  fromParam: string | null,
+  toParam: string | null,
+): { from: string; to: string } {
+  const from = normalizeDateBoundary(fromParam ?? "0000-01-01T00:00:00.000Z", "from");
+  const to = normalizeDateBoundary(toParam ?? "9999-12-31T23:59:59.999Z", "to");
+
+  if (from > to) {
+    throw new ValidationError("`from` must be on or before `to`.", "from");
+  }
+
+  return { from, to };
 }

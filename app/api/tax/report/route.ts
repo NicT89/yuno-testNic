@@ -1,7 +1,11 @@
 import { buildComplianceReport, formatComplianceReportCsv } from "@/lib/compliance";
 import { jsonError, jsonOk } from "@/lib/http";
 import { formatMinor } from "@/lib/money";
-import { parseCountryParam, ValidationError } from "@/lib/validation";
+import {
+  parseCountryParam,
+  parseDateRangeParams,
+  ValidationError,
+} from "@/lib/validation";
 
 /**
  * GET /api/tax/report?country=BR&from=2026-01-01&to=2026-12-31&format=json|csv
@@ -26,9 +30,12 @@ export async function GET(request: Request) {
       throw new ValidationError("`format` must be `json` or `csv`.", "format");
     }
 
-    // Default to an open window so a reviewer can call this with no dates.
-    const from = searchParams.get("from") ?? "0000-01-01";
-    const to = searchParams.get("to") ?? "9999-12-31";
+    // Date-only `to` values include the full calendar day; malformed and
+    // reversed ranges fail explicitly instead of producing a misleading file.
+    const { from, to } = parseDateRangeParams(
+      searchParams.get("from"),
+      searchParams.get("to"),
+    );
 
     const report = buildComplianceReport(country, from, to);
 

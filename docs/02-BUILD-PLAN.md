@@ -16,7 +16,9 @@ Division of labour:
 **Edit:** `data/tax-rules.json`, `scripts/seed-db.ts`
 **Port from:** `docs/reference/src/seed/rules.ts`, `docs/04-TAX-RULES.md`
 
-29 rule versions across five countries. Every rule carries a `legalReference`.
+30 rule versions across five countries (the 29-row reference set plus the
+explicit 0% BR digital-services ICMS exclusion that blocks wildcard fallthrough).
+Every rule carries a `legalReference` or an explicit illustrative note.
 Include the two seeded version pairs so date-based selection is demonstrable
 immediately after seeding:
 - `BR:ELECTRONICS:ICMS` v1 = 17% valid to 2026-01-01, v2 = 18% from 2026-01-01
@@ -107,7 +109,7 @@ re-fetch the original audit record and see it unchanged.
 **Edit:** `data/transactions.json`, `scripts/seed-db.ts`
 **Port from:** `docs/reference/src/seed/transactions.ts`
 
-56 transactions across five countries, three amount bands, both customer types,
+57 transactions across five countries, three amount bands, both customer types,
 with annotated edge cases. Each fixture keeps its `note` field explaining what
 it exercises; that doubles as the test plan.
 
@@ -120,7 +122,7 @@ it exercises; that doubles as the test plan.
 
 Seeds, prints a calculation matrix, walks the edge cases, proves idempotency,
 demonstrates date-based rule selection, publishes a rate change and shows the
-historical record unchanged, then writes `out/compliance-report-*.json`.
+historical record unchanged, then writes `reports/compliance-report-*.json`.
 
 Three of the six rubric criteria phrase their acceptance criteria as "a
 reviewer should be able to". This script is that reviewer's 20 seconds.

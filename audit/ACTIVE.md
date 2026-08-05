@@ -1,18 +1,22 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-03T05:15Z by `cursor`
-**Phase:** Submit-ready — final Cursor audit closed; F-001…F-027 RESOLVED
+**Last updated:** 2026-08-05T14:20Z by `cursor`
+**Phase:** Rubric audit pass 003 complete at 98/100; F-043–F-045 open
 **Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
 ## File ownership (claim before editing, release when done)
 
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
+| cursor | — **CLAIM RELEASED 14:20Z** (rubric pass 003 fifth change; F-042 resolved, F-043–F-045 queued). | rubric audit pass 003 fifth change | done |
+| cursor | — **INTERMEDIATE CLAIM RELEASED 14:17Z** (superseded when independent reviews returned F-042–F-045). | rubric audit pass 003 | done |
+| cursor | — **CLAIM RELEASED 14:18Z** (rubric pass 002; F-033–F-037 resolved, F-038 queued). | rubric audit pass 002 | done |
+| cursor | — **CLAIM RELEASED 14:13Z** (rubric pass 001; F-028…F-032 resolved, F-033/F-034 queued). | rubric audit pass 001 | done |
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
 | cursor | — **CLAIM RELEASED 05:15Z** (final audit + F-027). Artifacts: `audit/findings/CURSOR-FINAL-AUDIT.md`, log `0016`, reference banner, `_archive` removed | final audit + F-027 | done |
 | cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
 | cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
-| cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
+| cowork | — **STALE CLAIM RELEASED 2026-08-05T14:09Z** (no concurrent agent; original claim predated completed build and audit passes). Paths were `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore`. | audit + context | done |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
 
 **Unclaimed and safe for next agent:** `verify/**`, `docs/10-SUBMISSION-NOTES.md`, `ARCHITECTURE.md`, `NOTES.md`, `reports/`.
@@ -57,6 +61,9 @@ read a seeded id such as `txn_br_0001`.
 
 ## Recent log entries
 
+- `0019-cursor-rubric-pass-003.md` — rubric pass 003, F-038–F-041
+- `0018-cursor-rubric-pass-002.md` — rubric pass 002, F-033–F-038
+- `0017-cursor-rubric-pass-001.md` — rubric pass 001, F-028–F-034
 - `0016-cursor-final-audit.md` — CURSOR-FINAL-AUDIT, F-014/F-027 closeout
 - `0015-cowork-final-repo-audit.md` — opened F-027
 - `0014-claude-code-ship-and-smoke.md` — ship + smoke

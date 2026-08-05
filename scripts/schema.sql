@@ -183,10 +183,33 @@ BEGIN
 END;
 
 -- Same guarantee for rule versions: you may INSERT a new version, and you may
--- only ever UPDATE the superseded_at column of an existing one.
+-- only ever stamp a previously-null superseded_at. Every other column is part
+-- of the immutable version snapshot.
 CREATE TRIGGER IF NOT EXISTS trg_rules_append_only
-BEFORE UPDATE OF id, rule_key, version, rate_bps, valid_from, valid_to, recorded_at
-ON tax_rule_versions
+BEFORE UPDATE ON tax_rule_versions
+WHEN
+     NEW.id                   IS NOT OLD.id
+  OR NEW.rule_key             IS NOT OLD.rule_key
+  OR NEW.version              IS NOT OLD.version
+  OR NEW.country_code         IS NOT OLD.country_code
+  OR NEW.product_category     IS NOT OLD.product_category
+  OR NEW.customer_type        IS NOT OLD.customer_type
+  OR NEW.tax_type             IS NOT OLD.tax_type
+  OR NEW.tax_scope            IS NOT OLD.tax_scope
+  OR NEW.rate_bps             IS NOT OLD.rate_bps
+  OR NEW.treatment            IS NOT OLD.treatment
+  OR NEW.threshold_minor      IS NOT OLD.threshold_minor
+  OR NEW.taxable_base         IS NOT OLD.taxable_base
+  OR NEW.priority             IS NOT OLD.priority
+  OR NEW.compound_on_previous IS NOT OLD.compound_on_previous
+  OR NEW.valid_from           IS NOT OLD.valid_from
+  OR NEW.valid_to             IS NOT OLD.valid_to
+  OR NEW.recorded_at          IS NOT OLD.recorded_at
+  OR NEW.ruleset_version      IS NOT OLD.ruleset_version
+  OR NEW.legal_reference      IS NOT OLD.legal_reference
+  OR NEW.notes                IS NOT OLD.notes
+  OR OLD.superseded_at IS NOT NULL
+  OR NEW.superseded_at IS NULL
 BEGIN
   SELECT RAISE(ABORT, 'tax_rule_versions is append-only: create a new version instead');
 END;
