@@ -1,14 +1,14 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-05T14:09Z by `cursor`
-**Phase:** Rubric audit pass 003 in progress; F-038 plus report/date-filter defects
+**Last updated:** 2026-08-05T14:17Z by `cursor`
+**Phase:** Rubric audit pass 003 complete at 99/100; F-038–F-041 resolved
 **Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
 ## File ownership (claim before editing, release when done)
 
 | Agent | Claimed paths | Task | Since |
 |---|---|---|---|
-| cursor | `lib/{validation,audit,compliance}.ts`, `app/api/{audit,tax/report}/**`, `scripts/test-tax.ts`, `package{,-lock}.json`, `README.md`, `docs/{02-BUILD-PLAN,04-TAX-RULES,06-SUBMISSION,12-RUBRIC-AUDIT-AGENT}.md`, `CLAUDE.md`, `AGENTS.md`, `audit/**` | rubric audit pass 003 | 14:09Z |
+| cursor | — **CLAIM RELEASED 14:17Z** (rubric pass 003; F-038–F-041 resolved, score 99/100). | rubric audit pass 003 | done |
 | cursor | — **CLAIM RELEASED 14:18Z** (rubric pass 002; F-033–F-037 resolved, F-038 queued). | rubric audit pass 002 | done |
 | cursor | — **CLAIM RELEASED 14:13Z** (rubric pass 001; F-028…F-032 resolved, F-033/F-034 queued). | rubric audit pass 001 | done |
 | claude-code | — **CLAIM RELEASED 04:25Z** (T1–T5, T10–T16, F-023/024/025, F-026 all done). Paths were `lib/**`, `app/api/**`, `scripts/**`, `data/*.json`, `README.md` | T1–T16 | done |
@@ -60,6 +60,7 @@ read a seeded id such as `txn_br_0001`.
 
 ## Recent log entries
 
+- `0019-cursor-rubric-pass-003.md` — rubric pass 003, F-038–F-041
 - `0018-cursor-rubric-pass-002.md` — rubric pass 002, F-033–F-038
 - `0017-cursor-rubric-pass-001.md` — rubric pass 001, F-028–F-034
 - `0016-cursor-final-audit.md` — CURSOR-FINAL-AUDIT, F-014/F-027 closeout
