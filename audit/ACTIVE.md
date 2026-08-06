@@ -31,6 +31,7 @@
 | cursor | — **CLAIM RELEASED 02:08Z** (`audit/qa/**`, log `0035`) | QA probe run 017 | done |
 | cursor | — **CLAIM RELEASED 03:05Z** (`audit/qa/**`, log `0036`) | QA probe run 018 | done |
 | cursor | — **CLAIM RELEASED 04:07Z** (`audit/qa/**`, log `0037`) | QA probe run 019 | done |
+| cursor | `audit/qa/**`, `audit/ACTIVE.md`, `audit/log/0038-cursor-qa-run-020.md` | QA probe run 020 | 05:02Z |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
 
