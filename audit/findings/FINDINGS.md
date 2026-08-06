@@ -35,6 +35,9 @@ Status: `OPEN` · `IN PROGRESS` · `RESOLVED` · `WONTFIX` · `NEEDS DECISION`
 | F-025 | `BR:ELECTRONICS:ICMS` v2 18% cites EC 132/2023; reform does not mandate that ICMS bump on 2026-01-01 | accuracy | `docs/11-DATA-DISCLAIMER.md` | catalogue / demo honesty | cursor | **RESOLVED by labelling** |
 | F-026 | Vercel sets VERCEL=1 at BUILD time, so the seed wrote its audit rows to the build container /tmp and shipped an empty audit trail | 20 | `lib/db.ts` `getDbPath()` | T10 | claude-code | **RESOLVED** |
 | F-027 | `docs/reference/` looks like a second submission; `docs/_archive/` is scaffolding noise | docs | `audit/log/0015-cowork-final-repo-audit.md` | hygiene | cursor | **RESOLVED** |
+| F-039 | Unknown product categories fall through to country wildcard tax rules instead of returning 422 | **25** | `audit/qa/runs/RUN-001.md` QA-001 | rule resolution | human/build agent | **OPEN** |
+| F-040 | Route-level validation failures are absent from the immutable audit trail | **20** | `audit/qa/runs/RUN-001.md` QA-002 | audit invariant | human/build agent | **OPEN** |
+| F-041 | Documented demo command leaves all tracked compliance reports modified | docs | `audit/qa/runs/RUN-001.md` QA-003 | clean clone | human/build agent | **OPEN** |
 
 ## Resolutions
 
@@ -457,4 +460,24 @@ remains RESOLVED under the same id in the status table.
 
 Banner added to `docs/reference/README.md`. `docs/_archive/` removed from git
 and ignored. Reference build retained as labelled process artifact.
+
+### F-039 — OPEN 2026-08-05T09:11Z — Unknown categories are silently taxed
+
+Production accepted `product_category: "totally_unknown_category"` for Brazil
+and returned 200 with `taxAmountMinor: 1700`, applying `BR:*:ICMS@v1`. The
+golden acceptance signal requires 422 `NO_APPLICABLE_RULE`; a silent wrong
+number is P0. Exact request and response evidence: QA-001 in
+`audit/qa/runs/RUN-001.md`. The QA agent did not modify product code.
+
+### F-040 — OPEN 2026-08-05T09:14Z — Rejected requests bypass audit persistence
+
+A production missing-amount request with fixed transaction id returned
+structured 400, then its audit URL returned 404. This breaks the invariant that
+every request, including failures, is persisted. QA-002 has the exact evidence.
+
+### F-041 — OPEN 2026-08-05T09:09Z — Clean clone is dirty after the demo
+
+All documented commands succeed, but `npm run demo` rewrites the five tracked
+compliance reports. `git status --short` is therefore not clean after a reviewer
+follows the README. This has persisted across 14 daily probes.
 
