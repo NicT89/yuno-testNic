@@ -1,6 +1,6 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-06T07:08Z by `cursor`
+**Last updated:** 2026-08-06T08:02Z by `cursor`
 **Phase:** Submit-ready — final Cursor audit closed; F-001…F-027 RESOLVED
 **Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
@@ -34,6 +34,7 @@
 | cursor | — **CLAIM RELEASED 05:05Z** (`audit/qa/**`, log `0038`) | QA probe run 020 | done |
 | cursor | — **CLAIM RELEASED 06:09Z** (`audit/qa/**`, F-039–F-041, log `0039`) | QA probe run 021 | done |
 | cursor | — **CLAIM RELEASED 07:08Z** (`audit/qa/**`, log `0040`) | QA probe run 022 | done |
+| cursor | `audit/qa/**`, `audit/ACTIVE.md`, `audit/log/0041-cursor-qa-run-023.md` | QA probe run 023 | 08:02Z |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
 
