@@ -1,0 +1,175 @@
+{
+  "lastRun": "2026-08-06T04:05:59.949Z",
+  "runNumber": 19,
+  "lastTier": "hourly",
+  "baselineEstablished": true,
+  "checks": {
+    "J1.calculate": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J1.auditRead": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J1.seededAudit": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J2.countrySweep": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J3.refundSymmetry": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J4.idempotency": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J5.dateSelection": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J6.reportIntegrity": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J7.missingAmount": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J7.failureAudit": {
+      "status": "fail",
+      "consecutiveFails": 32,
+      "firstSeen": "2026-08-05T09:14:00Z",
+      "priorConsecutiveFailsFromMemory": 13,
+      "reported": true,
+      "signature": "68e3e6547bb8f517350dc6af44b58dfdf094a8037c8106920117f89a21e80843"
+    },
+    "J7.unknownCountry": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J7.unsupportedCurrency": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J7.nonIntegerAmount": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J7.malformedDate": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J7.unknownCategory": {
+      "status": "fail",
+      "consecutiveFails": 40,
+      "firstSeen": "2026-08-05T09:06:17Z",
+      "priorConsecutiveFailsFromMemory": 21,
+      "reported": true,
+      "signature": "baed80ebbc0f9bbcb0f7763769c5f06cef843b5c073af9272282294794330bb4"
+    },
+    "J7.beforeRules": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J8.countryRules": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J8.onDate": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J8.asOf": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J8.versions": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-06T04:05:59.949Z"
+    },
+    "J9.coldStart": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:07:03Z"
+    },
+    "J10.install": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.seed": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.tests": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.build": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.demo": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.typecheck": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:00Z"
+    },
+    "J10.smoke": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:09:09Z"
+    },
+    "J10.gitClean": {
+      "status": "fail",
+      "consecutiveFails": 14,
+      "firstSeen": "2026-08-05T09:09:00Z",
+      "priorConsecutiveFailsFromMemory": 13,
+      "reported": true,
+      "signature": "2db59f7d3ab0213fba776b9db71cb81f28b6b70451f25f652abb5755e02ca65f"
+    },
+    "J11.mutation": {
+      "status": "pass",
+      "consecutiveFails": 0,
+      "lastPass": "2026-08-05T09:10:06Z"
+    }
+  },
+  "suppressed": [
+    "J9.coldStartAudit404"
+  ],
+  "openIssues": [
+    "QA-001",
+    "QA-002",
+    "QA-003"
+  ]
+}
