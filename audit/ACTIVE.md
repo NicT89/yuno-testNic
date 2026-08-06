@@ -1,6 +1,6 @@
 # ACTIVE — read this before you touch anything
 
-**Last updated:** 2026-08-03T05:15Z by `cursor`
+**Last updated:** 2026-08-06T04:07Z by `cursor`
 **Phase:** Submit-ready — final Cursor audit closed; F-001…F-027 RESOLVED
 **Repo:** `NicT89/yuno-testNic` · branch `main` · Deliverable https://yuno-test-nic.vercel.app
 
@@ -12,6 +12,26 @@
 | cursor | — **CLAIM RELEASED 05:15Z** (final audit + F-027). Artifacts: `audit/findings/CURSOR-FINAL-AUDIT.md`, log `0016`, reference banner, `_archive` removed | final audit + F-027 | done |
 | cursor | — **CLAIM RELEASED 04:35Z** (docs/11 disclaimer + yuno-test-nic Next.js deploy). | disclaimer + deliverable | done |
 | cursor | — **CLAIM RELEASED 03:58Z** (C1–C5 done). Artifacts: `audit/findings/CURSOR-*.md`, `verify/**`, `docs/10-SUBMISSION-NOTES.md` | C1–C5 | done |
+| cursor | — **CLAIM RELEASED 10:08Z** (`audit/qa/**`, log `0020`) | QA probe run 002 | done |
+| cursor | — **CLAIM RELEASED 09:20Z** (`audit/qa/**`, F-039–F-041, log `0019`) | QA probe run 001 | done |
+| cursor | — **CLAIM RELEASED 12:05Z** (`audit/qa/**`, log `0021`) | QA probe run 003 | done |
+| cursor | — **CLAIM RELEASED 13:06Z** (`audit/qa/**`, log `0022`) | QA probe run 004 | done |
+| cursor | — **CLAIM RELEASED 14:09Z** (`audit/qa/**`, log `0023`) | QA probe run 005 | done |
+| cursor | — **CLAIM RELEASED 15:08Z** (`audit/qa/**`, log `0024`) | QA probe run 006 | done |
+| cursor | — **CLAIM RELEASED 16:12Z** (`audit/qa/**`, log `0025`) | QA probe run 007 | done |
+| cursor | — **CLAIM RELEASED 17:08Z** (`audit/qa/**`, log `0026`) | QA probe run 008 | done |
+| cursor | — **CLAIM RELEASED 18:24Z** (`audit/qa/**`, log `0027`) | QA probe run 009 | done |
+| cursor | — **CLAIM RELEASED 19:16Z** (`audit/qa/**`, log `0028`) | QA probe run 010 | done |
+| cursor | — **CLAIM RELEASED 20:08Z** (`audit/qa/**`, log `0029`) | QA probe run 011 | done |
+| cursor | — **CLAIM RELEASED 21:10Z** (`audit/qa/**`, log `0030`) | QA probe run 012 | done |
+| cursor | — **CLAIM RELEASED 22:08Z** (`audit/qa/**`, log `0031`) | QA probe run 013 | done |
+| cursor | — **CLAIM RELEASED 23:08Z** (`audit/qa/**`, log `0032`) | QA probe run 014 | done |
+| cursor | — **CLAIM RELEASED 00:08Z** (`audit/qa/**`, log `0033`) | QA probe run 015 | done |
+| cursor | — **CLAIM RELEASED 01:08Z** (`audit/qa/**`, log `0034`) | QA probe run 016 | done |
+| cursor | — **CLAIM RELEASED 02:08Z** (`audit/qa/**`, log `0035`) | QA probe run 017 | done |
+| cursor | — **CLAIM RELEASED 03:05Z** (`audit/qa/**`, log `0036`) | QA probe run 018 | done |
+| cursor | — **CLAIM RELEASED 04:07Z** (`audit/qa/**`, log `0037`) | QA probe run 019 | done |
+| cursor | — **CLAIM RELEASED 05:05Z** (`audit/qa/**`, log `0038`) | QA probe run 020 | done |
 | cowork | `docs/**`, `audit/**`, `CLAUDE.md`, `AGENTS.md`, `.cursor/**`, `.gitignore` | audit + context | 01:52Z |
 | cowork | `data/transactions.json` — **CLAIM RELEASED 02:45Z**, one-off write for F-012 | T6 | done |
 
